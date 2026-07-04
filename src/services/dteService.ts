@@ -210,6 +210,20 @@ export const dteService = {
       invalidCount: vals.invalidCount,
     }));
   },
+
+  async deleteDocument(id: string): Promise<void> {
+    if (USE_MOCK) {
+      return;
+    }
+    const { error } = await supabase
+      .from('dtes')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+  },
 };
 
 function filterMockDocuments(filters: DteQueryFilters): DteListResponse {

@@ -64,23 +64,15 @@ export function ManualUpload() {
     try {
       setStatus({ message: 'Verificando duplicados en base de datos...', tone: 'neutral' });
       
-      const [docCheck, dteCheck] = await Promise.all([
-        supabase
-          .from('dte_documents')
-          .select('id')
-          .eq('dte_number', dteNumberFromFile)
-          .maybeSingle(),
-        supabase
-          .from('dtes')
-          .select('id')
-          .eq('numero_dte', dteNumberFromFile)
-          .maybeSingle()
-      ]);
+      const { data, error } = await supabase
+        .from('dtes')
+        .select('id')
+        .ilike('numero_dte', `%${dteNumberFromFile}%`)
+        .maybeSingle();
 
-      if (docCheck.error) console.error('Error checking duplicate in dte_documents:', docCheck.error);
-      if (dteCheck.error) console.error('Error checking duplicate in dtes:', dteCheck.error);
+      if (error) console.error('Error checking duplicate in dtes:', error);
 
-      const isDuplicate = Boolean(docCheck.data || dteCheck.data);
+      const isDuplicate = Boolean(data);
 
       if (isDuplicate) {
         setPdfFile(null);

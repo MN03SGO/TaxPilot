@@ -3,6 +3,7 @@ import { Topbar } from '@/components/layout/Topbar';
 import { SummaryCard } from '@/components/dashboard/SummaryCard';
 import { ProcessingVolumeChart } from '@/components/dashboard/ProcessingVolumeChart';
 import { AuditTable } from '@/components/dashboard/AuditTable';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useDashboardStats,
   useProcessingVolume,
@@ -34,9 +35,16 @@ function ErrorState({ message }: { message: string }) {
 }
 
 export function Dashboard() {
+  const queryClient = useQueryClient();
   const statsQuery = useDashboardStats();
   const volumeQuery = useProcessingVolume();
   const documentsQuery = useDteDocuments({ pageSize: 10 });
+
+  const handleDeleteSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['processing-volume'] });
+    queryClient.invalidateQueries({ queryKey: ['dte-documents'] });
+  };
 
   const isLoading =
     statsQuery.isLoading || volumeQuery.isLoading || documentsQuery.isLoading;
@@ -98,6 +106,7 @@ export function Dashboard() {
                 onViewDetails={(doc) => {
                   console.info('View DTE details:', doc.id);
                 }}
+                onDeleteSuccess={handleDeleteSuccess}
               />
             </section>
           </div>

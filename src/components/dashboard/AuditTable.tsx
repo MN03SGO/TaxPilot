@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { AlertTriangle, ExternalLink, Info } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Info, Trash2 } from 'lucide-react';
 import type { DteDocument } from '@/types/dte';
 import { getDteStatus } from '@/types/dte';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
 import { formatCurrency, formatDate } from '@/lib/formatters';
+import { dteService } from '@/services/dteService';
 
 interface AuditTableProps {
   documents: DteDocument[];
   onViewDetails?: (document: DteDocument) => void;
+  onDeleteSuccess?: () => void;
 }
 
-export function AuditTable({ documents, onViewDetails }: AuditTableProps) {
+export function AuditTable({ documents, onViewDetails, onDeleteSuccess }: AuditTableProps) {
   const [activeTooltipId, setActiveTooltipId] = useState<string | null>(null);
 
   if (documents.length === 0) {
@@ -20,6 +22,19 @@ export function AuditTable({ documents, onViewDetails }: AuditTableProps) {
       </div>
     );
   }
+
+  const handleDelete = async (docId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (window.confirm('¿Estás seguro de que deseas eliminar este DTE permanentemente?')) {
+      try {
+        await dteService.deleteDocument(docId);
+        onDeleteSuccess?.();
+      } catch (err) {
+        console.error('Failed to delete document:', err);
+        alert('Error al intentar eliminar el DTE.');
+      }
+    }
+  };
 
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
@@ -108,7 +123,7 @@ export function AuditTable({ documents, onViewDetails }: AuditTableProps) {
                       >
                         <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-[var(--color-error)]">
                           <Info className="h-3 w-3" />
-                          Observaciones
+                           Observaciones
                         </div>
                         <p className="text-xs leading-relaxed text-[var(--color-foreground)]">
                           {doc.observaciones}
@@ -117,17 +132,27 @@ export function AuditTable({ documents, onViewDetails }: AuditTableProps) {
                     )}
                   </td>
                   <td className="px-5 py-3.5">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewDetails?.(doc);
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-foreground)] transition-colors hover:bg-neutral-100"
-                    >
-                      Details
-                      <ExternalLink className="h-3 w-3" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewDetails?.(doc);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-foreground)] transition-colors hover:bg-neutral-100 cursor-pointer"
+                      >
+                        Details
+                        <ExternalLink className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(doc.id, e)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100 cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
