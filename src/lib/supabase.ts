@@ -1,28 +1,40 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim()
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
+let supabaseClient: SupabaseClient | null = null;
+
+function getSupabaseClient(): SupabaseClient {
+  if (!isSupabaseConfigured || !supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  supabaseClient ??= createClient(supabaseUrl, supabaseAnonKey);
+  return supabaseClient;
 }
 
-export const supabaseConfig = {
-  anonKey: supabaseAnonKey,
-  url: supabaseUrl,
-}
+export const supabaseConfig = isSupabaseConfigured
+  ? { url: supabaseUrl!, anonKey: supabaseAnonKey! }
+  : null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, property, receiver) {
+    return Reflect.get(getSupabaseClient(), property, receiver);
+  },
+});
 
 export async function getCurrentUser() {
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser()
+  } = await getSupabaseClient().auth.getUser();
 
   if (error) {
-    throw error
+    throw error;
   }
 
-  return user
+  return user;
 }

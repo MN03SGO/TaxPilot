@@ -6,7 +6,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export interface AuthUser {
   id: string;
@@ -79,13 +79,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Check initial session
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(mapSupabaseUser(session?.user ?? null));
       setLoading(false);
     });
 
-    // Listen to changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(mapSupabaseUser(session?.user ?? null));
     });
@@ -94,6 +97,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [mapSupabaseUser]);
 
   const login = useCallback(async ({ email, password }: LoginCredentials) => {
+    if (!isSupabaseConfigured) {
+      throw new Error(
+        'Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY, o usa el modo demo.',
+      );
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     setIsDemo(false);
@@ -101,6 +110,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signup = useCallback(async ({ email, password, nombre, empresa, mailConectado }: SignupCredentials) => {
+    if (!isSupabaseConfigured) {
+      throw new Error(
+        'Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.',
+      );
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -116,7 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
     localStorage.removeItem('taxpilot_mock_bypass');
     setIsDemo(false);
   }, []);
