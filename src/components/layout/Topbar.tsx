@@ -1,4 +1,5 @@
-import { Search, Bell, ChevronDown } from 'lucide-react';
+import { Search, Bell, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface TopbarProps {
   title: string;
@@ -13,6 +14,8 @@ export function Topbar({
   searchValue = '',
   onSearchChange,
 }: TopbarProps) {
+  const { user, logout } = useAuth();
+
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-6">
       <div>
@@ -47,21 +50,27 @@ export function Topbar({
           <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--color-error)]" />
         </button>
 
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-2.5 py-1.5 transition-colors hover:bg-neutral-50"
-        >
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-700">
-            HJ
+        <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-2 py-1.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-accent-muted)] text-xs font-semibold text-[var(--color-accent)]">
+            {user?.initials ?? 'TP'}
           </div>
           <div className="hidden text-left sm:block">
             <p className="text-xs font-medium text-[var(--color-foreground)]">
-              Hugo Jovel
+              {user?.name ?? 'Auditor'}
             </p>
-            <p className="text-[10px] text-[var(--color-muted)]">Auditor</p>
+            <p className="text-[10px] text-[var(--color-muted)]">
+              {user?.role ?? 'Auditor'}
+            </p>
           </div>
-          <ChevronDown className="h-3.5 w-3.5 text-[var(--color-muted)]" />
-        </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="ml-1 flex h-7 w-7 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface)] hover:text-[var(--color-error)]"
+            aria-label="Cerrar sesión"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
     </header>
   );

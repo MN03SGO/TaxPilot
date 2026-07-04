@@ -21,6 +21,14 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173). Mock data is enabled by default (`VITE_USE_MOCK=true`).
 
+## Authentication Mock
+
+Login route: [http://localhost:5173/login](http://localhost:5173/login).
+
+The app currently uses frontend-only mock authentication because there is no database connected yet. It accepts any valid email and any non-empty password, stores a mock `auth_token` in `localStorage`, and protects the dashboard routes behind `RequireAuth`.
+
+When the backend/database is ready, replace the mock login logic in `src/providers/AuthProvider.tsx` with the real API call. The Axios client already reads `auth_token` from `localStorage` in `src/services/api.ts`.
+
 ## Folder Structure
 
 ```
