@@ -5,6 +5,7 @@ import { Dashboard } from '@/pages/Dashboard';
 import { Audit } from '@/pages/Audit';
 import { Reports } from '@/pages/Reports';
 import { Settings } from '@/pages/Settings';
+import { ManualUpload } from '@/pages/ManualUpload';
 import { Login } from '@/pages/Login';
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="audit" element={<Audit />} />
+          <Route path="manual-upload" element={<ManualUpload />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />

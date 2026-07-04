@@ -7,9 +7,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+node_modules/
 node_modules
+dist/
 dist
 dist-ssr
+.vite/
 *.local
 
 # Editor directories and files
@@ -26,3 +29,9 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+.agents/skills/
+schema.sql
+.cursor/
+docs/dte-supabase.md
+supabase/migrations/001_dte_documents.sql

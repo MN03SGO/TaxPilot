@@ -3,17 +3,19 @@ import {
   useCallback,
   useMemo,
   useState,
+  useEffect,
   type ReactNode,
 } from 'react';
-
-const AUTH_TOKEN_KEY = 'auth_token';
-const AUTH_USER_KEY = 'taxpilot_user';
+import { supabase } from '@/lib/supabase';
 
 export interface AuthUser {
+  id: string;
   email: string;
   name: string;
   role: string;
   initials: string;
+  empresa?: string;
+  mail_conectado?: string;
 }
 
 interface LoginCredentials {
@@ -21,108 +23,121 @@ interface LoginCredentials {
   password: string;
 }
 
+interface SignupCredentials {
+  email: string;
+  password: string;
+  nombre: string;
+  empresa: string;
+  mailConectado: string;
+}
+
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  loading: boolean;
+  isDemo: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
-  logout: () => void;
+  signup: (credentials: SignupCredentials) => Promise<void>;
+  logout: () => Promise<void>;
+  activateDemoMode: () => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-function getStoredUser(): AuthUser | null {
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
-  const storedUser = localStorage.getItem(AUTH_USER_KEY);
-
-  if (!token || !storedUser) {
-    return null;
-  }
-
-  try {
-    const user = JSON.parse(storedUser) as AuthUser;
-    if (!user.email || !user.name || !user.initials) {
-      return null;
-    }
-    return user;
-  } catch {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_USER_KEY);
-    return null;
-  }
-}
-
-function toTitleCase(value: string): string {
-  return value
-    .split(/[._-\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
 function getInitials(name: string): string {
-  const initials = name
+  return name
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part.charAt(0))
-    .join('');
-
-  return initials.toUpperCase() || 'TP';
-}
-
-function buildMockUser(email: string): AuthUser {
-  const localPart = email.split('@')[0] ?? 'auditor';
-  const name = toTitleCase(localPart) || 'Auditor Fiscal';
-
-  return {
-    email,
-    name,
-    role: 'Auditor',
-    initials: getInitials(name),
-  };
-}
-
-function createMockToken(email: string): string {
-  const payload = `${email}:${Date.now()}`;
-  return `mock.${window.btoa(payload)}`;
+    .join('')
+    .toUpperCase() || 'TP';
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState(() => {
+    return typeof window !== 'undefined' && localStorage.getItem('taxpilot_mock_bypass') === 'true';
+  });
 
-  const login = useCallback(async ({ email, password }: LoginCredentials) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const hasValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-
-    if (!hasValidEmail) {
-      throw new Error('Ingresa un correo válido.');
-    }
-
-    if (!password.trim()) {
-      throw new Error('Ingresa tu contraseña.');
-    }
-
-    const nextUser = buildMockUser(normalizedEmail);
-
-    localStorage.setItem(AUTH_TOKEN_KEY, createMockToken(normalizedEmail));
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(nextUser));
-    setUser(nextUser);
+  const mapSupabaseUser = useCallback((sbUser: any): AuthUser | null => {
+    if (!sbUser) return null;
+    const email = sbUser.email || '';
+    const name = sbUser.user_metadata?.nombre || email.split('@')[0] || 'Auditor';
+    const role = sbUser.user_metadata?.empresa || 'Auditor';
+    
+    return {
+      id: sbUser.id,
+      email,
+      name,
+      role,
+      initials: getInitials(name),
+      empresa: sbUser.user_metadata?.empresa,
+      mail_conectado: sbUser.user_metadata?.mail_conectado,
+    };
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_USER_KEY);
-    setUser(null);
+  useEffect(() => {
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(mapSupabaseUser(session?.user ?? null));
+      setLoading(false);
+    });
+
+    // Listen to changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(mapSupabaseUser(session?.user ?? null));
+    });
+
+    return () => subscription.unsubscribe();
+  }, [mapSupabaseUser]);
+
+  const login = useCallback(async ({ email, password }: LoginCredentials) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    setIsDemo(false);
+    localStorage.removeItem('taxpilot_mock_bypass');
+  }, []);
+
+  const signup = useCallback(async ({ email, password, nombre, empresa, mailConectado }: SignupCredentials) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          nombre,
+          empresa,
+          mail_conectado: mailConectado,
+        },
+      },
+    });
+    if (error) throw error;
+  }, []);
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('taxpilot_mock_bypass');
+    setIsDemo(false);
+  }, []);
+
+  const activateDemoMode = useCallback(() => {
+    localStorage.setItem('taxpilot_mock_bypass', 'true');
+    setIsDemo(true);
   }, []);
 
   const value = useMemo(
     () => ({
       user,
-      isAuthenticated: Boolean(user),
+      isAuthenticated: Boolean(user) || isDemo,
+      loading,
+      isDemo,
       login,
+      signup,
       logout,
+      activateDemoMode,
     }),
-    [login, logout, user],
+    [login, signup, logout, user, loading, isDemo, activateDemoMode],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

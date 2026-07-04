@@ -1,0 +1,375 @@
+:root {
+  color: #1f2933;
+  background: #eef2f6;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgb(20 108 95 / 12%), transparent 34%),
+    linear-gradient(315deg, rgb(37 99 235 / 10%), transparent 38%),
+    #eef2f6;
+}
+
+button {
+  min-height: 44px;
+  width: fit-content;
+  border: 0;
+  border-radius: 6px;
+  background: #146c5f;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+}
+
+button:hover {
+  background: #0f574d;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #cfd8e3;
+  border-radius: 6px;
+  background: #fbfdff;
+  color: #1f2933;
+  font: inherit;
+  padding: 0.78rem 0.86rem;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 4px rgb(37 99 235 / 13%);
+}
+
+textarea {
+  resize: vertical;
+}
+
+.workspace {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #146c5f;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.7rem);
+  line-height: 0.98;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.panel {
+  border: 1px solid rgb(148 163 184 / 42%);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 18px 50px rgb(31 41 55 / 9%);
+  backdrop-filter: blur(12px);
+}
+
+.form-panel,
+.recent-panel {
+  padding: 24px;
+}
+
+.section-heading {
+  margin-bottom: 22px;
+}
+
+.session-pill {
+  max-width: 360px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #cfd8e3;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 78%);
+  color: #4b5563;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.55rem 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-pill[data-state="ready"] {
+  border-color: rgb(20 108 95 / 30%);
+  background: rgb(20 108 95 / 10%);
+  color: #0f574d;
+}
+
+.session-pill[data-state="warning"] {
+  border-color: rgb(180 83 9 / 28%);
+  background: rgb(245 158 11 / 12%);
+  color: #92400e;
+}
+
+.dte-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.dte-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.dte-form label > span {
+  color: #344054;
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.switch-row {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 10px;
+  align-self: end;
+  border: 1px solid #d8e0ea;
+  border-radius: 6px;
+  background: #f8fafc;
+  padding: 0 0.86rem;
+}
+
+.switch-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: #146c5f;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 2px;
+}
+
+.status-text {
+  margin: 0;
+  color: #536171;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.status-text[data-tone="success"] {
+  color: #0f766e;
+  font-weight: 750;
+}
+
+.status-text[data-tone="warning"] {
+  color: #92400e;
+}
+
+.status-text[data-tone="error"],
+.empty-state.error {
+  color: #b42318;
+}
+
+.recent-list {
+  display: grid;
+  gap: 10px;
+}
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid #dce3ec;
+  border-radius: 6px;
+  background: #fbfdff;
+  padding: 14px;
+}
+
+.recent-item div {
+  display: grid;
+  gap: 5px;
+}
+
+.recent-item div:last-child {
+  justify-items: end;
+  text-align: right;
+}
+
+.recent-item strong {
+  color: #172033;
+}
+
+.recent-item span,
+.recent-item small,
+.empty-state {
+  color: #667085;
+  font-size: 0.9rem;
+}
+
+.empty-state {
+  margin: 0;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  padding: 16px;
+}
+
+@media (max-width: 860px) {
+  .topbar {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .layout,
+  .dte-form {
+    grid-template-columns: 1fr;
+  }
+
+  .full-span {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .workspace {
+    width: min(100% - 20px, 1180px);
+    padding: 24px 0;
+  }
+
+  .form-panel,
+  .recent-panel {
+    padding: 18px;
+  }
+
+  .actions,
+  .recent-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+
+  .recent-item div:last-child {
+    justify-items: start;
+    text-align: left;
+  }
+}
+
+/* File Upload and DTE File Buttons Styles */
+input[type="file"] {
+  padding: 0.52rem 0.86rem;
+  cursor: pointer;
+}
+input[type="file"]::file-selector-button {
+  background: #146c5f;
+  color: white;
+  border: 0;
+  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  margin-right: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+input[type="file"]::file-selector-button:hover {
+  background: #0f574d;
+}
+
+.dte-files {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  align-items: center;
+}
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+.file-btn.pdf {
+  border: 1px solid #dc2626;
+  color: #dc2626;
+  background: transparent;
+}
+.file-btn.pdf:hover {
+  background: #fee2e2;
+  border-color: #b91c1c;
+}
+.file-btn.json {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  background: transparent;
+}
+.file-btn.json:hover {
+  background: #dbeafe;
+  border-color: #1d4ed8;
+}
+.file-badge-missing {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  padding: 0.25rem 0;
+}
