@@ -16,6 +16,10 @@ export interface DteDocument {
   observaciones: string | null;
   created_at: string;
   updated_at: string;
+  files?: {
+    jsonUrl?: string | null;
+    pdfUrl?: string | null;
+  } | null;
 }
 
 /** Aggregated dashboard metrics */

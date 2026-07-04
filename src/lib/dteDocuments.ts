@@ -3,19 +3,34 @@ import { supabase } from './supabase'
 const DTE_JSON_BUCKET = 'dte-json'
 const DTE_PDF_BUCKET = 'dte-pdf'
 
-function requireValue(value, fieldName) {
+function requireValue(value: any, fieldName: string) {
   if (!value) {
     throw new Error(`${fieldName} is required`)
   }
 }
 
-function normalizeDteNumber(dteNumber) {
+function normalizeDteNumber(dteNumber: string | number) {
   return String(dteNumber).trim().replaceAll('/', '-')
 }
 
-function buildDtePath({ taxpayerId, dteNumber, extension }) {
+interface DtePathParams {
+  taxpayerId: string;
+  dteNumber: string | number;
+  extension: 'json' | 'pdf';
+}
+
+function buildDtePath({ taxpayerId, dteNumber, extension }: DtePathParams) {
   const safeDteNumber = normalizeDteNumber(dteNumber)
   return `${taxpayerId}/${safeDteNumber}.${extension}`
+}
+
+export interface UploadDteDocumentParams {
+  taxpayerId: string;
+  dteNumber: string | number;
+  dteType: string;
+  issuedAt: string;
+  jsonFile?: File | null;
+  pdfFile?: File | null;
 }
 
 export async function uploadDteDocument({
@@ -25,7 +40,7 @@ export async function uploadDteDocument({
   issuedAt,
   jsonFile,
   pdfFile,
-}) {
+}: UploadDteDocumentParams) {
   requireValue(taxpayerId, 'taxpayerId')
   requireValue(dteNumber, 'dteNumber')
   requireValue(dteType, 'dteType')
@@ -35,7 +50,7 @@ export async function uploadDteDocument({
     throw new Error('Debe proporcionar al menos un archivo JSON o PDF.')
   }
 
-  let jsonPath = null
+  let jsonPath: string | null = null
   if (jsonFile) {
     jsonPath = buildDtePath({ taxpayerId, dteNumber, extension: 'json' })
     const { error: jsonError } = await supabase.storage
@@ -50,7 +65,7 @@ export async function uploadDteDocument({
     }
   }
 
-  let pdfPath = null
+  let pdfPath: string | null = null
   if (pdfFile) {
     pdfPath = buildDtePath({ taxpayerId, dteNumber, extension: 'pdf' })
     const { error: pdfError } = await supabase.storage
@@ -90,11 +105,17 @@ export async function uploadDteDocument({
   return data
 }
 
+export interface ListDteDocumentsOptions {
+  taxpayerId?: string;
+  ascending?: boolean;
+  limit?: number;
+}
+
 export async function listDteDocuments({
   taxpayerId,
   ascending = false,
   limit = 100,
-} = {}) {
+}: ListDteDocumentsOptions = {}) {
   let query = supabase
     .from('dte_documents')
     .select(
@@ -118,7 +139,7 @@ export async function listDteDocuments({
   return data
 }
 
-export async function createDteSignedUrls(dteDocument, expiresIn = 3600) {
+export async function createDteSignedUrls(dteDocument: any, expiresIn = 3600) {
   const promises = []
 
   if (dteDocument.json_path) {
@@ -126,9 +147,9 @@ export async function createDteSignedUrls(dteDocument, expiresIn = 3600) {
       supabase.storage
         .from(dteDocument.json_bucket)
         .createSignedUrl(dteDocument.json_path, expiresIn)
-        .then(({ data, error }) => {
-          if (error) throw error
-          return { jsonUrl: data?.signedUrl || null }
+        .then((res) => {
+          if (res.error) throw res.error
+          return { jsonUrl: res.data?.signedUrl || null }
         })
     )
   } else {
@@ -140,9 +161,9 @@ export async function createDteSignedUrls(dteDocument, expiresIn = 3600) {
       supabase.storage
         .from(dteDocument.pdf_bucket)
         .createSignedUrl(dteDocument.pdf_path, expiresIn)
-        .then(({ data, error }) => {
-          if (error) throw error
-          return { pdfUrl: data?.signedUrl || null }
+        .then((res) => {
+          if (res.error) throw res.error
+          return { pdfUrl: res.data?.signedUrl || null }
         })
     )
   } else {
@@ -153,7 +174,7 @@ export async function createDteSignedUrls(dteDocument, expiresIn = 3600) {
   return Object.assign({}, ...results)
 }
 
-export async function listDteDocumentsWithUrls(options) {
+export async function listDteDocumentsWithUrls(options?: ListDteDocumentsOptions) {
   const documents = await listDteDocuments(options)
 
   return Promise.all(
@@ -162,4 +183,53 @@ export async function listDteDocumentsWithUrls(options) {
       files: await createDteSignedUrls(document),
     })),
   )
+}
+
+export async function uploadDteToN8n({
+  taxpayerId,
+  jsonFile,
+  pdfFile,
+}: {
+  taxpayerId: string;
+  jsonFile?: File | null;
+  pdfFile?: File | null;
+}) {
+  const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+  const apiKey = import.meta.env.VITE_N8N_API_KEY;
+
+  if (!webhookUrl) {
+    throw new Error('La URL del Webhook de n8n no está configurada.');
+  }
+
+  const formData = new FormData();
+  formData.append('taxpayerId', taxpayerId);
+
+  if (jsonFile) {
+    formData.append('jsonFile', jsonFile);
+  }
+  if (pdfFile) {
+    formData.append('pdfFile', pdfFile);
+  }
+
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers['X-N8N-API-KEY'] = apiKey;
+  }
+
+  const response = await fetch(webhookUrl, {
+    method: 'POST',
+    body: formData,
+    headers,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error en el webhook de n8n: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    return { success: true };
+  }
 }
