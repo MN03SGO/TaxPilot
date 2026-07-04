@@ -11,3 +11,4 @@ schema.sql
 
 .cursor/
 docs/dte-supabase.md
+supabase/migrations/001_dte_documents.sql
