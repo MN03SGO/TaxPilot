@@ -30,32 +30,39 @@ export async function uploadDteDocument({
   requireValue(dteNumber, 'dteNumber')
   requireValue(dteType, 'dteType')
   requireValue(issuedAt, 'issuedAt')
-  requireValue(jsonFile, 'jsonFile')
-  requireValue(pdfFile, 'pdfFile')
 
-  const jsonPath = buildDtePath({ taxpayerId, dteNumber, extension: 'json' })
-  const pdfPath = buildDtePath({ taxpayerId, dteNumber, extension: 'pdf' })
-
-  const { error: jsonError } = await supabase.storage
-    .from(DTE_JSON_BUCKET)
-    .upload(jsonPath, jsonFile, {
-      contentType: 'application/json',
-      upsert: true,
-    })
-
-  if (jsonError) {
-    throw jsonError
+  if (!jsonFile && !pdfFile) {
+    throw new Error('Debe proporcionar al menos un archivo JSON o PDF.')
   }
 
-  const { error: pdfError } = await supabase.storage
-    .from(DTE_PDF_BUCKET)
-    .upload(pdfPath, pdfFile, {
-      contentType: 'application/pdf',
-      upsert: true,
-    })
+  let jsonPath = null
+  if (jsonFile) {
+    jsonPath = buildDtePath({ taxpayerId, dteNumber, extension: 'json' })
+    const { error: jsonError } = await supabase.storage
+      .from(DTE_JSON_BUCKET)
+      .upload(jsonPath, jsonFile, {
+        contentType: 'application/json',
+        upsert: true,
+      })
 
-  if (pdfError) {
-    throw pdfError
+    if (jsonError) {
+      throw jsonError
+    }
+  }
+
+  let pdfPath = null
+  if (pdfFile) {
+    pdfPath = buildDtePath({ taxpayerId, dteNumber, extension: 'pdf' })
+    const { error: pdfError } = await supabase.storage
+      .from(DTE_PDF_BUCKET)
+      .upload(pdfPath, pdfFile, {
+        contentType: 'application/pdf',
+        upsert: true,
+      })
+
+    if (pdfError) {
+      throw pdfError
+    }
   }
 
   const { data, error } = await supabase
@@ -112,28 +119,38 @@ export async function listDteDocuments({
 }
 
 export async function createDteSignedUrls(dteDocument, expiresIn = 3600) {
-  const [{ data: jsonData, error: jsonError }, { data: pdfData, error: pdfError }] =
-    await Promise.all([
+  const promises = []
+
+  if (dteDocument.json_path) {
+    promises.push(
       supabase.storage
         .from(dteDocument.json_bucket)
-        .createSignedUrl(dteDocument.json_path, expiresIn),
+        .createSignedUrl(dteDocument.json_path, expiresIn)
+        .then(({ data, error }) => {
+          if (error) throw error
+          return { jsonUrl: data?.signedUrl || null }
+        })
+    )
+  } else {
+    promises.push(Promise.resolve({ jsonUrl: null }))
+  }
+
+  if (dteDocument.pdf_path) {
+    promises.push(
       supabase.storage
         .from(dteDocument.pdf_bucket)
-        .createSignedUrl(dteDocument.pdf_path, expiresIn),
-    ])
-
-  if (jsonError) {
-    throw jsonError
+        .createSignedUrl(dteDocument.pdf_path, expiresIn)
+        .then(({ data, error }) => {
+          if (error) throw error
+          return { pdfUrl: data?.signedUrl || null }
+        })
+    )
+  } else {
+    promises.push(Promise.resolve({ pdfUrl: null }))
   }
 
-  if (pdfError) {
-    throw pdfError
-  }
-
-  return {
-    jsonUrl: jsonData.signedUrl,
-    pdfUrl: pdfData.signedUrl,
-  }
+  const results = await Promise.all(promises)
+  return Object.assign({}, ...results)
 }
 
 export async function listDteDocumentsWithUrls(options) {
