@@ -4,6 +4,7 @@ import { uploadDteToN8n } from '@/lib/dteDocuments';
 import { dteService } from '@/services/dteService';
 import type { DteDocument } from '@/types/dte';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
 import { FileDown, UploadCloud, AlertCircle } from 'lucide-react';
 
 export function ManualUpload() {
@@ -51,6 +52,56 @@ export function ManualUpload() {
     }
   }
 
+  // Check if file is a duplicate in Supabase
+  const checkDuplicateAndSetFile = async (file: File) => {
+    if (file.type !== 'application/pdf') {
+      setStatus({ message: 'Solo se permiten archivos PDF.', tone: 'error' });
+      return;
+    }
+
+    const dteNumberFromFile = file.name.replace(/\.[^/.]+$/, "").trim();
+
+    try {
+      setStatus({ message: 'Verificando duplicados en base de datos...', tone: 'neutral' });
+      
+      const [docCheck, dteCheck] = await Promise.all([
+        supabase
+          .from('dte_documents')
+          .select('id')
+          .eq('dte_number', dteNumberFromFile)
+          .maybeSingle(),
+        supabase
+          .from('dtes')
+          .select('id')
+          .eq('numero_dte', dteNumberFromFile)
+          .maybeSingle()
+      ]);
+
+      if (docCheck.error) console.error('Error checking duplicate in dte_documents:', docCheck.error);
+      if (dteCheck.error) console.error('Error checking duplicate in dtes:', dteCheck.error);
+
+      const isDuplicate = Boolean(docCheck.data || dteCheck.data);
+
+      if (isDuplicate) {
+        setPdfFile(null);
+        setStatus({
+          message: `El DTE "${dteNumberFromFile}" ya se encuentra registrado en el sistema (Duplicado detectado).`,
+          tone: 'error',
+        });
+        
+        const pdfInput = document.getElementById('pdfFile') as HTMLInputElement;
+        if (pdfInput) pdfInput.value = '';
+      } else {
+        setPdfFile(file);
+        setStatus({ message: 'Archivo verificado. No se detectaron duplicados.', tone: 'success' });
+      }
+    } catch (err) {
+      console.error('Failed to verify duplicate:', err);
+      setPdfFile(file);
+      setStatus({ message: 'Archivo cargado (no se pudo verificar duplicados).', tone: 'warning' });
+    }
+  };
+
   // Handle drag-and-drop events
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -70,26 +121,14 @@ export function ManualUpload() {
     if (isDemo) return;
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type === 'application/pdf') {
-        setPdfFile(file);
-        setStatus({ message: '', tone: 'neutral' });
-      } else {
-        setStatus({ message: 'Solo se permiten archivos PDF.', tone: 'error' });
-      }
+      checkDuplicateAndSetFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.type === 'application/pdf') {
-        setPdfFile(file);
-        setStatus({ message: '', tone: 'neutral' });
-      } else {
-        setStatus({ message: 'Solo se permiten archivos PDF.', tone: 'error' });
-      }
+      checkDuplicateAndSetFile(e.target.files[0]);
     }
   };
 
@@ -251,6 +290,7 @@ export function ManualUpload() {
                           onClick={(e) => {
                             e.stopPropagation();
                             setPdfFile(null);
+                            setStatus({ message: 'Subida cancelada. Archivo removido.', tone: 'warning' });
                           }}
                           className="mt-3 text-xs font-semibold text-red-600 hover:text-red-500 hover:underline transition-colors"
                         >
@@ -284,6 +324,22 @@ export function ManualUpload() {
                   >
                     {isSubmitting ? 'Procesando en n8n...' : 'Subir y Procesar'}
                   </button>
+
+                  {pdfFile && !isSubmitting && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPdfFile(null);
+                        setStatus({ message: 'Subida abortada. Archivo removido.', tone: 'warning' });
+                        const pdfInput = document.getElementById('pdfFile') as HTMLInputElement;
+                        if (pdfInput) pdfInput.value = '';
+                      }}
+                      className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shadow-sm"
+                    >
+                      Cancelar y Borrar
+                    </button>
+                  )}
+
                   {status.message && (
                     <p
                       className={[
