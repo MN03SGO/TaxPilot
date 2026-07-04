@@ -17,22 +17,35 @@ const USE_MOCK =
   import.meta.env.VITE_USE_MOCK === 'true' ||
   (typeof window !== 'undefined' && localStorage.getItem('taxpilot_mock_bypass') === 'true');
 
-// Helper to map a db row from 'dtes' table to DteDocument type
-const mapDteRow = (row: any): DteDocument => ({
-  id: row.id,
-  codigo_generacion: row.numero_dte || '',
-  tipo_dte: '03', // Default fallback
-  emisor_nombre: row.emisor || '',
-  emisor_nit: '0614-000000-000-0', // Default fallback NIT
-  receptor_nombre: row.receptor || null,
-  fecha_emision: row.fecha ? new Date(row.fecha).toISOString().slice(0, 10) : '',
-  monto_total: Number(row.monto_total) || 0,
-  moneda: 'USD',
-  es_valido: Boolean(row.es_valido),
-  observaciones: row.observaciones || null,
-  created_at: row.created_at || '',
-  updated_at: row.created_at || '',
-});
+const mapDteRow = (row: any): DteDocument => {
+  let fechaStr = '';
+  if (row.fecha) {
+    if (row.fecha instanceof Date) {
+      const y = row.fecha.getFullYear();
+      const m = String(row.fecha.getMonth() + 1).padStart(2, '0');
+      const d = String(row.fecha.getDate()).padStart(2, '0');
+      fechaStr = `${y}-${m}-${d}`;
+    } else {
+      fechaStr = String(row.fecha).slice(0, 10);
+    }
+  }
+
+  return {
+    id: row.id,
+    codigo_generacion: row.numero_dte || '',
+    tipo_dte: '03', // Default fallback
+    emisor_nombre: row.emisor || '',
+    emisor_nit: '0614-000000-000-0', // Default fallback NIT
+    receptor_nombre: row.receptor || null,
+    fecha_emision: fechaStr,
+    monto_total: Number(row.monto_total) || 0,
+    moneda: 'USD',
+    es_valido: Boolean(row.es_valido),
+    observaciones: row.observaciones || null,
+    created_at: row.created_at || '',
+    updated_at: row.created_at || '',
+  };
+};
 
 // Helper to fetch signed URLs for matched documents
 async function attachFilesToDocuments(documents: DteDocument[]): Promise<DteDocument[]> {
