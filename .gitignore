@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.vite/
+
+.env
+.env.local
+.env.*.local
+
+.agents/skills/
+schema.sql
+
+.cursor/
+docs/dte-supabase.md
