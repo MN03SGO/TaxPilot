@@ -1,4 +1,5 @@
 import { Search, Bell, ChevronDown } from 'lucide-react';
+import { VoiceSearchButton } from './VoiceSearchButton';
 
 interface TopbarProps {
   title: string;
@@ -12,29 +13,32 @@ export function Topbar({
   subtitle,
   searchValue = '',
   onSearchChange,
-}: TopbarProps) {
-  return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-6">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight text-[var(--color-foreground)]">
-          {title}
-        </h1>
-        {subtitle && (
-          <p className="text-xs text-[var(--color-muted)]">{subtitle}</p>
-        )}
-      </div>
-
-      <div className="flex items-center gap-4">
+ }: TopbarProps) {
+   return (
+     <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-6">
+       <div>
+         <h1 className="text-lg font-semibold tracking-tight text-[var(--color-foreground)]">
+           {title}
+         </h1>
+         {subtitle && (
+           <p className="text-xs text-[var(--color-muted)]">{subtitle}</p>
+         )}
+       </div>
+ 
+       <div className="flex items-center gap-4">
         {onSearchChange && (
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)]" />
-            <input
-              type="search"
-              placeholder="Search DTEs..."
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="h-9 w-64 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] pl-9 pr-3 text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-muted)] outline-none transition-colors focus:border-neutral-400"
-            />
+          <div className="hidden md:flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)]" />
+              <input
+                type="search"
+                placeholder="Search DTEs..."
+                value={searchValue}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="h-9 w-64 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] pl-9 pr-3 text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-muted)] outline-none transition-colors focus:border-neutral-400"
+              />
+            </div>
+            <VoiceSearchButton onTranscript={onSearchChange} />
           </div>
         )}
 
