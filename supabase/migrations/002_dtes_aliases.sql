@@ -9,6 +9,13 @@ ALTER TABLE public.dtes ADD COLUMN IF NOT EXISTS receptor_nombre text;
 CREATE OR REPLACE FUNCTION public.sync_dtes_columns()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Sync numero_dte / codigo_generacion first to ensure we have the identifier
+  IF NEW.numero_dte IS NULL AND NEW.codigo_generacion IS NOT NULL THEN
+    NEW.numero_dte := NEW.codigo_generacion;
+  ELSIF NEW.codigo_generacion IS NULL AND NEW.numero_dte IS NOT NULL THEN
+    NEW.codigo_generacion := NEW.numero_dte;
+  END IF;
+
   -- Sync user_id / taxpayer_id
   IF NEW.user_id IS NULL AND NEW.taxpayer_id IS NOT NULL THEN
     NEW.user_id := NEW.taxpayer_id;
@@ -16,11 +23,15 @@ BEGIN
     NEW.taxpayer_id := NEW.user_id;
   END IF;
 
-  -- Sync numero_dte / codigo_generacion
-  IF NEW.numero_dte IS NULL AND NEW.codigo_generacion IS NOT NULL THEN
-    NEW.numero_dte := NEW.codigo_generacion;
-  ELSIF NEW.codigo_generacion IS NULL AND NEW.numero_dte IS NOT NULL THEN
-    NEW.codigo_generacion := NEW.numero_dte;
+  -- Fallback: If both user_id and taxpayer_id are NULL, resolve from dte_documents
+  IF NEW.user_id IS NULL AND NEW.numero_dte IS NOT NULL THEN
+    SELECT taxpayer_id INTO NEW.user_id
+    FROM public.dte_documents
+    WHERE dte_number = NEW.numero_dte
+    LIMIT 1;
+
+    -- Update taxpayer_id alias
+    NEW.taxpayer_id := NEW.user_id;
   END IF;
 
   -- Sync fecha / fecha_emision

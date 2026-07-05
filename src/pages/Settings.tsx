@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Topbar } from '@/components/layout/Topbar';
 import { useAuth } from '@/hooks/useAuth';
+import { isSupabaseConfigured } from '@/lib/supabase';
 
 const controls = [
   {
@@ -138,8 +139,15 @@ export function Settings() {
                     <KeyRound className="h-4 w-4 text-[var(--color-muted)]" />
                     Supabase
                   </span>
-                  <span className="rounded-[5px] border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-emerald-700">
-                    Conectado
+                  <span
+                    className={[
+                      'rounded-[5px] border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em]',
+                      isSupabaseConfigured
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : 'border-amber-200 bg-amber-50 text-amber-800',
+                    ].join(' ')}
+                  >
+                    {isSupabaseConfigured ? 'Conectado' : 'Faltante'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between rounded-[6px] border border-slate-200 bg-slate-50 p-3">
