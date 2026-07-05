@@ -69,61 +69,15 @@ export function ManualUpload() {
     }
   }
 
-  // Check if file is a duplicate in Supabase or local cache
-  const checkDuplicateAndSetFile = async (file: File) => {
+  // Simple validation when selecting the file (doesn't block selection on duplicates)
+  const checkDuplicateAndSetFile = (file: File) => {
     if (file.type !== 'application/pdf') {
       setStatus({ message: 'Solo se permiten archivos PDF.', tone: 'error' });
       return;
     }
 
-    // 1. Check local session cache first (instant)
-    if (uploadedFilenames.includes(file.name)) {
-      setPdfFile(null);
-      setStatus({
-        message: `El archivo "${file.name}" ya ha sido subido en esta sesión.`,
-        tone: 'error',
-      });
-      
-      const pdfInput = document.getElementById('pdfFile') as HTMLInputElement;
-      if (pdfInput) pdfInput.value = '';
-      return;
-    }
-
-    const dteNumberFromFile = file.name.replace(/\.[^/.]+$/, "").trim();
-
-    try {
-      setStatus({ message: 'Verificando duplicados en base de datos...', tone: 'neutral' });
-      
-      // 2. Query Supabase dtes table case-insensitively for the current user's documents
-      const { data, error } = await supabase
-        .from('dtes')
-        .select('id')
-        .eq('user_id', user?.id || '')
-        .ilike('numero_dte', dteNumberFromFile)
-        .maybeSingle();
-
-      if (error) console.error('Error checking duplicate in dtes:', error);
-
-      const isDuplicate = Boolean(data);
-
-      if (isDuplicate) {
-        setPdfFile(null);
-        setStatus({
-          message: `El DTE "${dteNumberFromFile}" ya se encuentra registrado en el sistema (Duplicado detectado).`,
-          tone: 'error',
-        });
-        
-        const pdfInput = document.getElementById('pdfFile') as HTMLInputElement;
-        if (pdfInput) pdfInput.value = '';
-      } else {
-        setPdfFile(file);
-        setStatus({ message: 'Archivo verificado. No se detectaron duplicados.', tone: 'success' });
-      }
-    } catch (err) {
-      console.error('Failed to verify duplicate:', err);
-      setPdfFile(file);
-      setStatus({ message: 'Archivo cargado (no se pudo verificar duplicados).', tone: 'warning' });
-    }
+    setPdfFile(file);
+    setStatus({ message: 'Archivo PDF seleccionado. Listo para procesar.', tone: 'success' });
   };
 
   // Handle drag-and-drop events
@@ -182,9 +136,40 @@ export function ManualUpload() {
       return;
     }
 
+    // Verify duplicates in database or local cache before submitting
+    const dteNumberFromFile = pdfFile.name.replace(/\.[^/.]+$/, "").trim();
+    const isLocalDuplicate = uploadedFilenames.includes(pdfFile.name);
+    
+    let isDbDuplicate = false;
+    try {
+      setStatus({ message: 'Verificando duplicados en la base de datos...', tone: 'neutral' });
+      const { data, error } = await supabase
+        .from('dtes')
+        .select('id')
+        .eq('user_id', user.id)
+        .ilike('numero_dte', dteNumberFromFile)
+        .maybeSingle();
+
+      if (error) console.error('Error checking duplicate in dtes:', error);
+      isDbDuplicate = Boolean(data);
+    } catch (err) {
+      console.error('Failed to verify duplicate:', err);
+    }
+
+    if (isLocalDuplicate || isDbDuplicate) {
+      alert("este dte ya esta registrado ingrese otro");
+      setStatus({ 
+        message: 'Subida cancelada: Este DTE ya está registrado en el sistema. Ingrese otro archivo.', 
+        tone: 'error' 
+      });
+      setPdfFile(null);
+      const pdfInput = document.getElementById('pdfFile') as HTMLInputElement;
+      if (pdfInput) pdfInput.value = '';
+      return;
+    }
+
     setIsSubmitting(true);
     const fileNameToCache = pdfFile.name;
-    const dteNumberFromFile = pdfFile.name.replace(/\.[^/.]+$/, "").trim();
 
     const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
 
