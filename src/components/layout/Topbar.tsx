@@ -36,9 +36,9 @@ export function Topbar({
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-2 overflow-hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
-              <span>TaxPilot</span>
-              <span className="h-1 w-1 rounded-full bg-[var(--color-accent)]" />
+            <div className="flex min-w-0 items-center gap-2 overflow-hidden whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)] [&>span:nth-child(3)]:hidden md:[&>span:nth-child(3)]:inline">
+              <span className="shrink-0 whitespace-nowrap">TaxPilot</span>
+              <span className="hidden h-1 w-1 shrink-0 rounded-full bg-[var(--color-accent)] md:block" />
               <span>Espacio de auditoría</span>
             </div>
             <h1 className="truncate text-xl font-semibold tracking-normal text-[var(--color-foreground)]">

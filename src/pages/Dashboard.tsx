@@ -122,16 +122,17 @@ function DashboardHeader() {
           </span>
         </div>
 
-        <button
-          type="button"
-          className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-[var(--color-border)] bg-white text-[var(--color-foreground-soft)] shadow-sm hover:border-[var(--color-primary)]"
-          aria-label="Notificaciones"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-white bg-[var(--color-primary)] tp-pulse-dot" />
-        </button>
+        <div className="grid w-full max-w-full grid-cols-[44px_minmax(0,1fr)] gap-3 sm:contents">
+          <button
+            type="button"
+            className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-[var(--color-border)] bg-white text-[var(--color-foreground-soft)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+            aria-label="Notificaciones"
+          >
+            <Bell className="h-4 w-4" />
+            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-white bg-[var(--color-primary)] tp-pulse-dot" />
+          </button>
 
-        <div className="relative w-full max-w-full min-w-0 sm:w-auto sm:shrink-0">
+          <div className="relative min-w-0 sm:w-auto sm:shrink-0">
           <button
             type="button"
             onClick={() => setIsUserMenuOpen((current) => !current)}
@@ -195,6 +196,7 @@ function DashboardHeader() {
               </div>
             </div>
           )}
+          </div>
         </div>
 
         <button
