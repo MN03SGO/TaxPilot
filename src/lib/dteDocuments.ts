@@ -219,7 +219,7 @@ export async function uploadDteToN8n({
     headers['X-N8N-API-KEY'] = apiKey;
   }
 
-  const response = await fetch(webhookUrl, {
+  const response = await fetch(webhookUrl || '', {
     method: 'POST',
     body: formData,
     headers,
