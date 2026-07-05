@@ -96,7 +96,7 @@ export function AssistantBubble() {
           message: text,
           taxpayerId: user?.id || 'demo-user',
           language: 'es', // Explicitly request Spanish
-          systemInstruction: 'Responde siempre en español de manera concisa y profesional. Tienes acceso al contexto con los datos reales del DTE y estadísticas del panel.',
+          systemInstruction: 'Eres el Asistente Oficial de Auditoría de TaxPilot (Módulo de Aseguramiento DTE). Responde siempre en español de manera concisa, analítica y sumamente profesional. Tienes acceso al contexto en tiempo real del panel (periodo fiscal activo: Julio 2026, con 72% de cobertura de validación). Utiliza las métricas oficiales del sistema: DTEs procesados, Errores detectados, Monto auditado, Tasa de éxito.',
           context: {
             stats: stats || { totalProcessed: 0, errorCount: 0, totalAuditedAmount: 0, successRate: 100 },
             documents: documents?.data || [],

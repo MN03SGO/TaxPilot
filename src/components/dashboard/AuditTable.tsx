@@ -40,10 +40,10 @@ export function AuditTable({ documents, onViewDetails, onDeleteSuccess }: AuditT
     <div className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]">
       <div className="border-b border-[var(--color-border)] px-5 py-4">
         <h2 className="text-sm font-semibold text-[var(--color-foreground)]">
-          Audit Table
+          Cola de validación
         </h2>
         <p className="text-xs text-[var(--color-muted)]">
-          {documents.length} documents — click invalid rows for observations
+          {documents.length} documentos — haz clic en las filas inválidas para ver observaciones
         </p>
       </div>
 
@@ -55,19 +55,19 @@ export function AuditTable({ documents, onViewDetails, onDeleteSuccess }: AuditT
                 ID
               </th>
               <th className="px-5 py-3 text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
-                Issuer
+                Emisor
               </th>
               <th className="px-5 py-3 text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
-                Date
+                Fecha
               </th>
               <th className="px-5 py-3 text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
-                Amount
+                Monto
               </th>
               <th className="px-5 py-3 text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
-                Status
+                Estado
               </th>
               <th className="px-5 py-3 text-xs font-medium uppercase tracking-wide text-[var(--color-muted)]">
-                Actions
+                Acciones
               </th>
             </tr>
           </thead>
@@ -141,7 +141,7 @@ export function AuditTable({ documents, onViewDetails, onDeleteSuccess }: AuditT
                         }}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-foreground)] transition-colors hover:bg-neutral-100 cursor-pointer"
                       >
-                        Details
+                        Detalles
                         <ExternalLink className="h-3 w-3" />
                       </button>
                       <button

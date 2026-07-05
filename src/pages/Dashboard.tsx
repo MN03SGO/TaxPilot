@@ -17,6 +17,7 @@ import {
   formatPercent,
 } from '@/lib/formatters';
 import type { DteDocument } from '@/types/dte';
+import { useAuth } from '@/hooks/useAuth';
 
 function LoadingState({ message }: { message: string }) {
   return (
@@ -42,6 +43,8 @@ export function Dashboard() {
   const statsQuery = useDashboardStats();
   const volumeQuery = useProcessingVolume();
   const documentsQuery = useDteDocuments({ pageSize: 10 });
+  
+  const { user } = useAuth();
 
   const [selectedDte, setSelectedDte] = useState<DteDocument | null>(null);
 
@@ -60,8 +63,8 @@ export function Dashboard() {
   return (
     <>
       <Topbar
-        title="Dashboard"
-        subtitle="DTE audit overview and processing metrics"
+        title={`Buenos días, ${user?.name ?? 'Auditor'}`}
+        subtitle="Esto es lo que está pasando hoy con tus auditorías DTE."
       />
 
       <main className="flex-1 overflow-y-auto p-6">
@@ -75,29 +78,34 @@ export function Dashboard() {
           <div className="space-y-6">
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <SummaryCard
-                title="Total DTEs Processed"
+                title="DTEs procesados"
                 value={formatNumber(statsQuery.data.totalProcessed)}
                 icon={FileText}
-                trend={{ value: '+12%', direction: 'up' }}
+                description="Documentos indexados"
+                trend={{ value: '+12% vs ayer', direction: 'up' }}
               />
               <SummaryCard
-                title="Error Count"
+                title="Errores detectados"
                 value={formatNumber(statsQuery.data.errorCount)}
                 icon={AlertCircle}
                 accent="danger"
-                trend={{ value: '-3%', direction: 'down' }}
+                description="Requieren revisión"
+                trend={{ value: '-3% vs ayer', direction: 'down' }}
               />
               <SummaryCard
-                title="Total Audited Amount"
+                title="Monto auditado"
                 value={formatCurrency(statsQuery.data.totalAuditedAmount)}
                 icon={DollarSign}
+                description="Cobertura validada"
+                trend={{ value: '+8.1% vs ayer', direction: 'up' }}
               />
               <SummaryCard
-                title="Success Rate"
+                title="Tasa de éxito"
                 value={formatPercent(statsQuery.data.successRate)}
                 icon={CheckCircle2}
                 accent="success"
-                trend={{ value: '+1.2%', direction: 'up' }}
+                description="Aprobación por reglas"
+                trend={{ value: '+1.2% vs ayer', direction: 'up' }}
               />
             </section>
 
