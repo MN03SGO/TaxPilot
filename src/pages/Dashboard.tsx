@@ -84,7 +84,7 @@ export function Dashboard() {
                 title="Error Count"
                 value={formatNumber(statsQuery.data.errorCount)}
                 icon={AlertCircle}
-                accent="error"
+                accent="danger"
                 trend={{ value: '-3%', direction: 'down' }}
               />
               <SummaryCard
