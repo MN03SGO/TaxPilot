@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Topbar } from '@/components/layout/Topbar';
 import { AuditTable } from '@/components/dashboard/AuditTable';
+import { DteDetailsModal } from '@/components/dashboard/DteDetailsModal';
 import { useDteDocuments } from '@/hooks/useDteDocuments';
-import type { DteStatus } from '@/types/dte';
+import type { DteStatus, DteDocument } from '@/types/dte';
 
 export function Audit() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<DteStatus | 'all'>('all');
+  const [selectedDte, setSelectedDte] = useState<DteDocument | null>(null);
 
-  const { data, isLoading, error } = useDteDocuments({
+  const { data, isLoading, error, refetch } = useDteDocuments({
     search: search || undefined,
     status,
   });
@@ -51,8 +53,21 @@ export function Audit() {
           </p>
         )}
 
-        {data && <AuditTable documents={data.data} />}
+        {data && (
+          <AuditTable
+            documents={data.data}
+            onViewDetails={(doc) => setSelectedDte(doc)}
+            onDeleteSuccess={() => refetch()}
+          />
+        )}
       </main>
+
+      {selectedDte && (
+        <DteDetailsModal
+          document={selectedDte}
+          onClose={() => setSelectedDte(null)}
+        />
+      )}
     </>
   );
 }

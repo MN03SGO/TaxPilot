@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { FileText, AlertCircle, DollarSign, CheckCircle2 } from 'lucide-react';
 import { Topbar } from '@/components/layout/Topbar';
 import { SummaryCard } from '@/components/dashboard/SummaryCard';
 import { ProcessingVolumeChart } from '@/components/dashboard/ProcessingVolumeChart';
 import { AuditTable } from '@/components/dashboard/AuditTable';
+import { DteDetailsModal } from '@/components/dashboard/DteDetailsModal';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useDashboardStats,
@@ -14,6 +16,7 @@ import {
   formatNumber,
   formatPercent,
 } from '@/lib/formatters';
+import type { DteDocument } from '@/types/dte';
 
 function LoadingState({ message }: { message: string }) {
   return (
@@ -39,6 +42,8 @@ export function Dashboard() {
   const statsQuery = useDashboardStats();
   const volumeQuery = useProcessingVolume();
   const documentsQuery = useDteDocuments({ pageSize: 10 });
+
+  const [selectedDte, setSelectedDte] = useState<DteDocument | null>(null);
 
   const handleDeleteSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
@@ -104,7 +109,7 @@ export function Dashboard() {
               <AuditTable
                 documents={documentsQuery.data.data}
                 onViewDetails={(doc) => {
-                  console.info('View DTE details:', doc.id);
+                  setSelectedDte(doc);
                 }}
                 onDeleteSuccess={handleDeleteSuccess}
               />
@@ -112,6 +117,13 @@ export function Dashboard() {
           </div>
         )}
       </main>
+
+      {selectedDte && (
+        <DteDetailsModal
+          document={selectedDte}
+          onClose={() => setSelectedDte(null)}
+        />
+      )}
     </>
   );
 }
