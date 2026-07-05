@@ -15,6 +15,12 @@ export function ManualUpload() {
   const [recentDtes, setRecentDtes] = useState<DteDocument[]>([]);
   const [isLoadingRecent, setIsLoadingRecent] = useState(false);
 
+  // Local cache to prevent double-uploads in the same session (bypasses n8n write latency)
+  const [uploadedFilenames, setUploadedFilenames] = useState<string[]>(() => {
+    const saved = localStorage.getItem('taxpilot_uploaded_filenames');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [hasN8nConfig, setHasN8nConfig] = useState(false);
   const [status, setStatus] = useState({ message: '', tone: 'neutral' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,10 +58,23 @@ export function ManualUpload() {
     }
   }
 
-  // Check if file is a duplicate in Supabase
+  // Check if file is a duplicate in Supabase or local cache
   const checkDuplicateAndSetFile = async (file: File) => {
     if (file.type !== 'application/pdf') {
       setStatus({ message: 'Solo se permiten archivos PDF.', tone: 'error' });
+      return;
+    }
+
+    // 1. Check local session cache first (instant)
+    if (uploadedFilenames.includes(file.name)) {
+      setPdfFile(null);
+      setStatus({
+        message: `El archivo "${file.name}" ya ha sido subido en esta sesión.`,
+        tone: 'error',
+      });
+      
+      const pdfInput = document.getElementById('pdfFile') as HTMLInputElement;
+      if (pdfInput) pdfInput.value = '';
       return;
     }
 
@@ -64,6 +83,7 @@ export function ManualUpload() {
     try {
       setStatus({ message: 'Verificando duplicados en base de datos...', tone: 'neutral' });
       
+      // 2. Query Supabase dtes table case-insensitively
       const { data, error } = await supabase
         .from('dtes')
         .select('id')
@@ -163,10 +183,17 @@ export function ManualUpload() {
     setStatus({ message: 'Enviando archivo PDF a n8n para procesamiento de IA...', tone: 'neutral' });
 
     try {
+      const fileNameToCache = pdfFile.name;
+
       await uploadDteToN8n({
         taxpayerId: user.id || '',
         pdfFile,
       });
+
+      // Save to local cache on success to block duplicates in current session
+      const nextFilenames = [...uploadedFilenames, fileNameToCache];
+      setUploadedFilenames(nextFilenames);
+      localStorage.setItem('taxpilot_uploaded_filenames', JSON.stringify(nextFilenames));
 
       setStatus({ 
         message: 'Archivo enviado con éxito a n8n. El DTE se procesará e indexará automáticamente en unos segundos.', 
@@ -204,9 +231,16 @@ export function ManualUpload() {
                 <UploadCloud className="h-5 w-5 text-teal-500" />
                 Subida de Archivos
               </h2>
-              <p className="text-xs text-[var(--color-muted)] mb-6">
+              <p className="text-xs text-[var(--color-muted)] mb-4">
                 Selecciona o arrastra el archivo PDF de la representación gráfica del DTE. Nuestro flujo inteligente de n8n lo leerá, extraerá sus datos con IA y lo registrará en la base de datos de manera automática.
               </p>
+
+              <div className="mb-6 rounded-lg bg-teal-50/50 border border-teal-150 p-3.5 text-xs text-teal-800">
+                <p className="font-semibold mb-1">💡 Validación de Duplicados en Tiempo Real</p>
+                <p className="text-teal-700 leading-relaxed">
+                  Para que el sistema detecte y bloquee al instante un DTE repetido en el navegador antes de llamar a n8n, asegúrate de **nombrar tu archivo PDF con el código de generación o número de control** (por ejemplo: <code className="font-mono bg-teal-100/80 px-1 py-0.5 rounded">C4B3A8B6-3D3D-4A2D-BC3C-2A2B4C5D6E7F.pdf</code>).
+                </p>
+              </div>
 
               {isDemo && (
                 <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-850 flex gap-3 items-start">
