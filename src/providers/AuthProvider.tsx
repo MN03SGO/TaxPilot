@@ -1,9 +1,9 @@
 import {
   createContext,
   useCallback,
+  useEffect,
   useMemo,
   useState,
-  useEffect,
   type ReactNode,
 } from 'react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
@@ -54,13 +54,15 @@ interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0))
-    .join('')
-    .toUpperCase() || 'TP';
+  return (
+    name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
+      .join('')
+      .toUpperCase() || 'TP'
+  );
 }
 
 function isValidEmail(email: string): boolean {
@@ -122,10 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const mapSupabaseUser = useCallback((sbUser: any): AuthUser | null => {
     if (!sbUser) return null;
+
     const email = sbUser.email || '';
     const name = sbUser.user_metadata?.nombre || email.split('@')[0] || 'Auditor';
     const role = sbUser.user_metadata?.empresa || 'Auditor';
-    
+
     return {
       id: sbUser.id,
       email,
@@ -137,74 +140,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-<<<<<<< HEAD
     if (USE_MOCK_AUTH) {
       setUser(readStoredMockUser());
-=======
-    if (!isSupabaseConfigured) {
->>>>>>> ca9b2fe83f7b9a2535812fbdfb7f41dde74ee2d0
       setLoading(false);
       return;
     }
 
-<<<<<<< HEAD
-    // Check initial session
-=======
->>>>>>> ca9b2fe83f7b9a2535812fbdfb7f41dde74ee2d0
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(mapSupabaseUser(session?.user ?? null));
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(mapSupabaseUser(session?.user ?? null));
     });
 
     return () => subscription.unsubscribe();
   }, [mapSupabaseUser]);
 
-  const login = useCallback(async ({ email, password }: LoginCredentials) => {
-<<<<<<< HEAD
-    const normalizedEmail = email.trim().toLowerCase();
+  const login = useCallback(
+    async ({ email, password }: LoginCredentials) => {
+      const normalizedEmail = email.trim().toLowerCase();
 
-    if (USE_MOCK_AUTH) {
-      if (!isValidEmail(normalizedEmail)) {
-        throw new Error('Ingresa un correo electronico valido.');
+      if (USE_MOCK_AUTH) {
+        if (!isValidEmail(normalizedEmail)) {
+          throw new Error('Ingresa un correo electronico valido.');
+        }
+
+        if (!password.trim()) {
+          throw new Error('Ingresa tu contrasena.');
+        }
+
+        const profiles = readMockProfiles();
+        const mockUser = createMockUser(normalizedEmail, profiles[normalizedEmail]);
+
+        localStorage.setItem(MOCK_AUTH_USER_KEY, JSON.stringify(mockUser));
+        localStorage.setItem(AUTH_TOKEN_KEY, `mock-token-${Date.now()}`);
+        localStorage.removeItem(DEMO_BYPASS_KEY);
+        setUser(mockUser);
+        setIsDemo(false);
+        return;
       }
 
-      if (!password.trim()) {
-        throw new Error('Ingresa tu contrasena.');
+      if (!isSupabaseConfigured) {
+        throw new Error(
+          'Supabase no esta configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY, o usa el modo demo.',
+        );
       }
 
-      const profiles = readMockProfiles();
-      const mockUser = createMockUser(normalizedEmail, profiles[normalizedEmail]);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
 
-      localStorage.setItem(MOCK_AUTH_USER_KEY, JSON.stringify(mockUser));
-      localStorage.setItem(AUTH_TOKEN_KEY, `mock-token-${Date.now()}`);
-      localStorage.removeItem(DEMO_BYPASS_KEY);
-      setUser(mockUser);
+      if (error) throw error;
+      setUser(mapSupabaseUser(data.user));
       setIsDemo(false);
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: normalizedEmail,
-      password,
-    });
-=======
-    if (!isSupabaseConfigured) {
-      throw new Error(
-        'Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY, o usa el modo demo.',
-      );
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
->>>>>>> ca9b2fe83f7b9a2535812fbdfb7f41dde74ee2d0
-    if (error) throw error;
-    setUser(mapSupabaseUser(data.user));
-    setIsDemo(false);
-    localStorage.removeItem(DEMO_BYPASS_KEY);
-  }, [mapSupabaseUser]);
+      localStorage.removeItem(DEMO_BYPASS_KEY);
+    },
+    [mapSupabaseUser],
+  );
 
   const signup = useCallback(async ({ email, password, nombre, empresa }: SignupCredentials) => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -227,16 +229,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-<<<<<<< HEAD
-=======
-  const signup = useCallback(async ({ email, password, nombre, empresa, mailConectado }: SignupCredentials) => {
     if (!isSupabaseConfigured) {
       throw new Error(
-        'Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.',
+        'Supabase no esta configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.',
       );
     }
 
->>>>>>> ca9b2fe83f7b9a2535812fbdfb7f41dde74ee2d0
     const { error } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,
@@ -247,12 +245,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       },
     });
+
     if (error) throw error;
   }, []);
 
   const logout = useCallback(async () => {
-<<<<<<< HEAD
-    if (!USE_MOCK_AUTH) {
+    if (!USE_MOCK_AUTH && isSupabaseConfigured) {
       await supabase.auth.signOut();
     }
 
@@ -260,12 +258,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(MOCK_AUTH_USER_KEY);
     localStorage.removeItem(DEMO_BYPASS_KEY);
     setUser(null);
-=======
-    if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
-    }
-    localStorage.removeItem('taxpilot_mock_bypass');
->>>>>>> ca9b2fe83f7b9a2535812fbdfb7f41dde74ee2d0
     setIsDemo(false);
   }, []);
 

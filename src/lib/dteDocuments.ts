@@ -196,15 +196,13 @@ export async function uploadDteToN8n({
   pdfFile?: File | null;
 }) {
   const configuredWebhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
-  const webhookUrl =
-    import.meta.env.DEV && configuredWebhookUrl
-      ? N8N_DEV_PROXY_PATH
-      : configuredWebhookUrl;
   const apiKey = import.meta.env.VITE_N8N_API_KEY;
 
   if (!configuredWebhookUrl) {
     throw new Error('La URL del Webhook de n8n no está configurada.');
   }
+
+  const webhookUrl = import.meta.env.DEV ? N8N_DEV_PROXY_PATH : configuredWebhookUrl;
 
   const formData = new FormData();
   formData.append('taxpayerId', taxpayerId);
