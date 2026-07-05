@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Mic, MicOff, Loader2, Bot, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { transcribeAudio, textToSpeech } from '@/lib/elevenLabs';
+import { dteService } from '@/services/dteService';
 
 interface Message {
   sender: 'user' | 'assistant';
@@ -50,7 +51,13 @@ export function AssistantBubble() {
         throw new Error('Webhook de n8n no configurado.');
       }
 
-      // Send chat payload to n8n
+      // Fetch DTEs and stats to feed the AI context
+      const [stats, documents] = await Promise.all([
+        dteService.getDashboardStats().catch(() => null),
+        dteService.getDocuments({ pageSize: 100 }).catch(() => null),
+      ]);
+
+      // Send chat payload to n8n with context and language instructions
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -60,6 +67,13 @@ export function AssistantBubble() {
           type: 'chat',
           message: text,
           taxpayerId: user?.id || 'demo-user',
+          language: 'es', // Explicitly request Spanish
+          systemInstruction: 'Responde siempre en español de manera concisa y profesional. Tienes acceso al contexto con los datos reales del DTE y estadísticas del panel.',
+          context: {
+            stats: stats || { totalProcessed: 0, errorCount: 0, totalAuditedAmount: 0, successRate: 100 },
+            documents: documents?.data || [],
+            timestamp: new Date().toISOString(),
+          },
         }),
       });
 
