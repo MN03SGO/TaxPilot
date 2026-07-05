@@ -99,8 +99,8 @@ function DashboardHeader() {
   const displayName = user?.name ?? 'Auditor';
 
   return (
-    <header className="relative z-40 flex w-full max-w-full min-w-0 flex-col gap-5 2xl:flex-row 2xl:items-start 2xl:justify-between tp-animate-in">
-      <div className="w-full max-w-full min-w-0">
+    <header className="relative z-40 flex w-full max-w-full min-w-0 flex-col gap-5 2xl:flex-row 2xl:items-start 2xl:justify-between 2xl:gap-6 tp-animate-in">
+      <div className="w-full max-w-full min-w-0 2xl:flex-1">
         <h1 className="text-2xl font-semibold tracking-normal text-[var(--color-foreground)] sm:text-3xl">
           Buenos días, {firstName(displayName)}
         </h1>
@@ -109,8 +109,8 @@ function DashboardHeader() {
         </p>
       </div>
 
-      <div className="flex w-full max-w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center 2xl:w-auto 2xl:flex-nowrap 2xl:justify-end">
-        <div className="relative w-full max-w-full min-w-0 sm:w-[300px] 2xl:w-[360px]">
+      <div className="flex w-full max-w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center 2xl:w-auto 2xl:shrink-0 2xl:flex-nowrap 2xl:justify-end">
+        <div className="relative w-full max-w-full min-w-0 sm:w-[300px] sm:shrink-0 2xl:w-[360px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)]" />
           <input
             type="search"
