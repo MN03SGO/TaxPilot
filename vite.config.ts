@@ -15,7 +15,7 @@ function createN8nProxy(webhookUrl?: string): Record<string, string | ProxyOptio
         target: parsedWebhookUrl.origin,
         changeOrigin: true,
         secure: true,
-        rewrite: () => webhookPath,
+        rewrite: (path) => path.replace(/^\/api\/n8n\/webhook/, webhookPath),
       },
     };
   } catch {

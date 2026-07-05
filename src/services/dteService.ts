@@ -224,6 +224,62 @@ export const dteService = {
       throw error;
     }
   },
+
+  async checkDuplicate(userId: string, dteNumber: string): Promise<boolean> {
+    const cleanNumber = dteNumber
+      .replace(/\s*\(\d+\)\s*$/, "")
+      .replace(/\s*-\s*copia\s*$/i, "")
+      .replace(/\s*copia\s*$/i, "")
+      .replace(/\s*\(copy\)\s*$/i, "")
+      .trim();
+
+    if (!cleanNumber) return false;
+
+    if (USE_MOCK) {
+      const term = cleanNumber.toLowerCase();
+      return MOCK_DTE_DOCUMENTS.some(
+        (doc) => 
+          doc.codigo_generacion.trim().toLowerCase() === term ||
+          doc.id.trim().toLowerCase() === term
+      );
+    }
+
+    try {
+      // 1. Check in 'dtes' table (numero_dte)
+      const { data: dteData } = await supabase
+        .from('dtes')
+        .select('id')
+        .eq('user_id', userId)
+        .ilike('numero_dte', cleanNumber)
+        .maybeSingle();
+
+      if (dteData) return true;
+
+      // 2. Check in 'dte_documents' table (dte_number)
+      const { data: docData } = await supabase
+        .from('dte_documents')
+        .select('id')
+        .eq('taxpayer_id', userId)
+        .ilike('dte_number', cleanNumber)
+        .maybeSingle();
+
+      if (docData) return true;
+
+      // 3. Check in 'dte_documents' table (pdf_path)
+      const { data: pathData } = await supabase
+        .from('dte_documents')
+        .select('id')
+        .eq('taxpayer_id', userId)
+        .like('pdf_path', `%${cleanNumber}%`)
+        .maybeSingle();
+
+      if (pathData) return true;
+    } catch (err) {
+      console.error('Error in checkDuplicate query:', err);
+    }
+
+    return false;
+  },
 };
 
 function filterMockDocuments(filters: DteQueryFilters): DteListResponse {

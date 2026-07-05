@@ -205,13 +205,19 @@ export async function uploadDteToN8n({
   const webhookUrl = import.meta.env.DEV ? N8N_DEV_PROXY_PATH : configuredWebhookUrl;
 
   const formData = new FormData();
+  // Send taxpayer ID with different common keys
   formData.append('taxpayerId', taxpayerId);
+  formData.append('taxpayer_id', taxpayerId);
+  formData.append('user_id', taxpayerId);
 
   if (jsonFile) {
     formData.append('jsonFile', jsonFile);
+    formData.append('file', jsonFile);
   }
   if (pdfFile) {
     formData.append('pdfFile', pdfFile);
+    formData.append('file', pdfFile);
+    formData.append('pdf', pdfFile);
   }
 
   const headers: Record<string, string> = {};

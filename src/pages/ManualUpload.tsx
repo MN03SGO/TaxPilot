@@ -18,6 +18,70 @@ const EMITTERS = [
   'Logística Express',
 ];
 
+const extractTextFromPdf = async (file: File): Promise<string> => {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const latin1Decoder = new TextDecoder('latin1');
+    const pdfContent = latin1Decoder.decode(new Uint8Array(arrayBuffer));
+
+    const decompressedTexts: string[] = [pdfContent];
+    const streamRegex = /stream\r?\n?([\s\S]*?)\r?\n?endstream/g;
+    let match;
+
+    const decompressStream = async (binaryStr: string): Promise<string | null> => {
+      try {
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        
+        const ds = new DecompressionStream('deflate');
+        const writer = ds.writable.getWriter();
+        writer.write(bytes);
+        writer.close();
+        
+        const response = new Response(ds.readable);
+        const buffer = await response.arrayBuffer();
+        return new TextDecoder('utf-8').decode(buffer);
+      } catch {
+        try {
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+          const ds = new DecompressionStream('deflate-raw');
+          const writer = ds.writable.getWriter();
+          writer.write(bytes);
+          writer.close();
+          const response = new Response(ds.readable);
+          const buffer = await response.arrayBuffer();
+          return new TextDecoder('utf-8').decode(buffer);
+        } catch {
+          return null;
+        }
+      }
+    };
+
+    const promises: Promise<string | null>[] = [];
+    while ((match = streamRegex.exec(pdfContent)) !== null) {
+      const streamData = match[1];
+      if (streamData && streamData.length > 10) {
+        promises.push(decompressStream(streamData));
+      }
+    }
+
+    const results = await Promise.all(promises);
+    results.forEach(text => {
+      if (text) decompressedTexts.push(text);
+    });
+
+    return decompressedTexts.join('\n');
+  } catch (error) {
+    console.error('Failed to extract text from PDF:', error);
+    return '';
+  }
+};
+
 export function ManualUpload() {
   const { user, isDemo } = useAuth();
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -69,10 +133,93 @@ export function ManualUpload() {
     }
   }
 
-  // Simple validation when selecting the file (doesn't block selection on duplicates)
-  const checkDuplicateAndSetFile = (file: File) => {
+  // Simple validation when selecting the file (now blocks selection on duplicates by reading PDF content)
+  const checkDuplicateAndSetFile = async (file: File) => {
     if (file.type !== 'application/pdf') {
       setStatus({ message: 'Solo se permiten archivos PDF.', tone: 'error' });
+      return;
+    }
+
+    const cleanDteNumber = (name: string): string => {
+      return name
+        .replace(/\.[^/.]+$/, "") // remove extension
+        .replace(/\s*\(\d+\)\s*$/, "") // remove (1), (2), etc.
+        .replace(/\s*-\s*copia\s*$/i, "") // remove - copia
+        .replace(/\s*copia\s*$/i, "") // remove copia
+        .replace(/\s*\(copy\)\s*$/i, "") // remove (copy)
+        .trim();
+    };
+
+    const candidates: string[] = [];
+    const dteNumberFromFile = cleanDteNumber(file.name);
+    if (dteNumberFromFile) {
+      candidates.push(dteNumberFromFile);
+    }
+
+    // Extract text from PDF in the frontend
+    try {
+      setStatus({ message: 'Analizando contenido del PDF...', tone: 'neutral' });
+      const pdfText = await extractTextFromPdf(file);
+      
+      // Match UUIDs (standard DTE generation codes)
+      const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+      const uuidMatches = pdfText.match(uuidRegex);
+      if (uuidMatches) {
+        uuidMatches.forEach(m => {
+          const cleaned = m.trim().toUpperCase();
+          if (!candidates.includes(cleaned)) {
+            candidates.push(cleaned);
+          }
+        });
+      }
+
+      // Match GEN-XXXXX patterns (mock codes)
+      const genRegex = /GEN-\d+/gi;
+      const genMatches = pdfText.match(genRegex);
+      if (genMatches) {
+        genMatches.forEach(m => {
+          const cleaned = m.trim().toUpperCase();
+          if (!candidates.includes(cleaned)) {
+            candidates.push(cleaned);
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Error reading PDF text:', err);
+    }
+
+    // Local duplication check
+    const isLocalDuplicate = candidates.some(candidate => 
+      uploadedFilenames.some(name => cleanDteNumber(name) === candidate)
+    );
+
+    // Database duplication check
+    let isDbDuplicate = false;
+    if (user || isDemo) {
+      try {
+        setStatus({ message: 'Verificando duplicados en la base de datos...', tone: 'neutral' });
+        for (const candidate of candidates) {
+          const exists = await dteService.checkDuplicate(user?.id || 'demo-user', candidate);
+          if (exists) {
+            isDbDuplicate = true;
+            break;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to verify duplicate:', err);
+      }
+    }
+
+    if (isLocalDuplicate || isDbDuplicate) {
+      alert("este dte ya esta registrado ingrese otro");
+      setStatus({ 
+        message: 'Este DTE ya está registrado en el sistema. Ingrese otro archivo.', 
+        tone: 'error' 
+      });
+      // Clear file input
+      const pdfInput = document.getElementById('pdfFile') as HTMLInputElement;
+      if (pdfInput) pdfInput.value = '';
+      setPdfFile(null);
       return;
     }
 
@@ -137,23 +284,74 @@ export function ManualUpload() {
     }
 
     // Verify duplicates in database or local cache before submitting
-    const dteNumberFromFile = pdfFile.name.replace(/\.[^/.]+$/, "").trim();
-    const isLocalDuplicate = uploadedFilenames.includes(pdfFile.name);
-    
-    let isDbDuplicate = false;
-    try {
-      setStatus({ message: 'Verificando duplicados en la base de datos...', tone: 'neutral' });
-      const { data, error } = await supabase
-        .from('dtes')
-        .select('id')
-        .eq('user_id', user.id)
-        .ilike('numero_dte', dteNumberFromFile)
-        .maybeSingle();
+    const cleanDteNumber = (name: string): string => {
+      return name
+        .replace(/\.[^/.]+$/, "") // remove extension
+        .replace(/\s*\(\d+\)\s*$/, "") // remove (1), (2), etc.
+        .replace(/\s*-\s*copia\s*$/i, "") // remove - copia
+        .replace(/\s*copia\s*$/i, "") // remove copia
+        .replace(/\s*\(copy\)\s*$/i, "") // remove (copy)
+        .trim();
+    };
 
-      if (error) console.error('Error checking duplicate in dtes:', error);
-      isDbDuplicate = Boolean(data);
+    const candidates: string[] = [];
+    const dteNumberFromFile = cleanDteNumber(pdfFile.name);
+    if (dteNumberFromFile) {
+      candidates.push(dteNumberFromFile);
+    }
+
+    // Extract text from PDF in the frontend
+    try {
+      setStatus({ message: 'Analizando contenido del PDF...', tone: 'neutral' });
+      const pdfText = await extractTextFromPdf(pdfFile);
+      
+      // Match UUIDs (standard DTE generation codes)
+      const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+      const uuidMatches = pdfText.match(uuidRegex);
+      if (uuidMatches) {
+        uuidMatches.forEach(m => {
+          const cleaned = m.trim().toUpperCase();
+          if (!candidates.includes(cleaned)) {
+            candidates.push(cleaned);
+          }
+        });
+      }
+
+      // Match GEN-XXXXX patterns (mock codes)
+      const genRegex = /GEN-\d+/gi;
+      const genMatches = pdfText.match(genRegex);
+      if (genMatches) {
+        genMatches.forEach(m => {
+          const cleaned = m.trim().toUpperCase();
+          if (!candidates.includes(cleaned)) {
+            candidates.push(cleaned);
+          }
+        });
+      }
     } catch (err) {
-      console.error('Failed to verify duplicate:', err);
+      console.error('Error reading PDF text:', err);
+    }
+
+    // Local duplication check
+    const isLocalDuplicate = candidates.some(candidate => 
+      uploadedFilenames.some(name => cleanDteNumber(name) === candidate)
+    );
+
+    // Database duplication check
+    let isDbDuplicate = false;
+    if (user || isDemo) {
+      try {
+        setStatus({ message: 'Verificando duplicados en la base de datos...', tone: 'neutral' });
+        for (const candidate of candidates) {
+          const exists = await dteService.checkDuplicate(user?.id || 'demo-user', candidate);
+          if (exists) {
+            isDbDuplicate = true;
+            break;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to verify duplicate:', err);
+      }
     }
 
     if (isLocalDuplicate || isDbDuplicate) {
