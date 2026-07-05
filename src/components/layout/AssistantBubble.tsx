@@ -84,9 +84,13 @@ export function AssistantBubble() {
       const data = await response.json().catch(() => null);
       
       // Handle standard response schemas
-      const answer = data?.output || data?.message || data?.response || 
+      let answer = data?.output || data?.message || data?.response || 
                      (typeof data === 'string' ? data : null) || 
                      'DTE recibido e indexado correctamente en la base de datos.';
+
+      if (answer === 'Workflow was started' || (data && data.message === 'Workflow was started')) {
+        answer = '🎤 ¡Tu micrófono y la transcripción de ElevenLabs funcionan perfectamente! Sin embargo, tu nodo Webhook en n8n está respondiendo con el mensaje predeterminado ("Workflow was started"). Para chatear con la IA, entra a n8n, edita la configuración del nodo Webhook, cambia el campo "Respond" a "Using Respond to Webhook Node", y coloca un nodo "Respond to Webhook" al final de tu flujo con la respuesta de la IA.';
+      }
 
       const assistantMsg: Message = {
         sender: 'assistant',
