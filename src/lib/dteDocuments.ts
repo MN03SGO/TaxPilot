@@ -2,6 +2,7 @@ import { supabase } from './supabase'
 
 const DTE_JSON_BUCKET = 'dte-json'
 const DTE_PDF_BUCKET = 'dte-pdf'
+const N8N_DEV_PROXY_PATH = '/api/n8n/webhook'
 
 function requireValue(value: any, fieldName: string) {
   if (!value) {
@@ -194,10 +195,14 @@ export async function uploadDteToN8n({
   jsonFile?: File | null;
   pdfFile?: File | null;
 }) {
-  const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+  const configuredWebhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+  const webhookUrl =
+    import.meta.env.DEV && configuredWebhookUrl
+      ? N8N_DEV_PROXY_PATH
+      : configuredWebhookUrl;
   const apiKey = import.meta.env.VITE_N8N_API_KEY;
 
-  if (!webhookUrl) {
+  if (!configuredWebhookUrl) {
     throw new Error('La URL del Webhook de n8n no está configurada.');
   }
 

@@ -8,6 +8,12 @@ import {
 } from 'react';
 import { supabase } from '@/lib/supabase';
 
+const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK === 'true';
+const AUTH_TOKEN_KEY = 'auth_token';
+const DEMO_BYPASS_KEY = 'taxpilot_mock_bypass';
+const MOCK_AUTH_USER_KEY = 'taxpilot_mock_auth_user';
+const MOCK_AUTH_PROFILES_KEY = 'taxpilot_mock_auth_profiles';
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -15,7 +21,6 @@ export interface AuthUser {
   role: string;
   initials: string;
   empresa?: string;
-  mail_conectado?: string;
 }
 
 interface LoginCredentials {
@@ -28,7 +33,11 @@ interface SignupCredentials {
   password: string;
   nombre: string;
   empresa: string;
-  mailConectado: string;
+}
+
+interface MockProfile {
+  nombre: string;
+  empresa: string;
 }
 
 interface AuthContextValue {
@@ -54,11 +63,61 @@ function getInitials(name: string): string {
     .toUpperCase() || 'TP';
 }
 
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function createMockUser(email: string, profile?: Partial<MockProfile>): AuthUser {
+  const name = profile?.nombre?.trim() || email.split('@')[0] || 'Auditor';
+  const empresa = profile?.empresa?.trim() || 'Auditor demo';
+
+  return {
+    id: `mock-${email}`,
+    email,
+    name,
+    role: empresa,
+    initials: getInitials(name),
+    empresa,
+  };
+}
+
+function readMockProfiles(): Record<string, MockProfile> {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const rawProfiles = localStorage.getItem(MOCK_AUTH_PROFILES_KEY);
+    return rawProfiles ? JSON.parse(rawProfiles) : {};
+  } catch {
+    return {};
+  }
+}
+
+function readStoredMockUser(): AuthUser | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const rawUser = localStorage.getItem(MOCK_AUTH_USER_KEY);
+    if (!rawUser) return null;
+
+    const parsedUser = JSON.parse(rawUser) as AuthUser;
+    if (!parsedUser.email || !parsedUser.name) return null;
+
+    return {
+      ...parsedUser,
+      initials: parsedUser.initials || getInitials(parsedUser.name),
+    };
+  } catch {
+    localStorage.removeItem(MOCK_AUTH_USER_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(() => {
-    return typeof window !== 'undefined' && localStorage.getItem('taxpilot_mock_bypass') === 'true';
+    return typeof window !== 'undefined' && localStorage.getItem(DEMO_BYPASS_KEY) === 'true';
   });
 
   const mapSupabaseUser = useCallback((sbUser: any): AuthUser | null => {
@@ -74,11 +133,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       initials: getInitials(name),
       empresa: sbUser.user_metadata?.empresa,
-      mail_conectado: sbUser.user_metadata?.mail_conectado,
     };
   }, []);
 
   useEffect(() => {
+    if (USE_MOCK_AUTH) {
+      setUser(readStoredMockUser());
+      setLoading(false);
+      return;
+    }
+
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(mapSupabaseUser(session?.user ?? null));
@@ -94,21 +158,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [mapSupabaseUser]);
 
   const login = useCallback(async ({ email, password }: LoginCredentials) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    setIsDemo(false);
-    localStorage.removeItem('taxpilot_mock_bypass');
-  }, []);
+    const normalizedEmail = email.trim().toLowerCase();
 
-  const signup = useCallback(async ({ email, password, nombre, empresa, mailConectado }: SignupCredentials) => {
+    if (USE_MOCK_AUTH) {
+      if (!isValidEmail(normalizedEmail)) {
+        throw new Error('Ingresa un correo electronico valido.');
+      }
+
+      if (!password.trim()) {
+        throw new Error('Ingresa tu contrasena.');
+      }
+
+      const profiles = readMockProfiles();
+      const mockUser = createMockUser(normalizedEmail, profiles[normalizedEmail]);
+
+      localStorage.setItem(MOCK_AUTH_USER_KEY, JSON.stringify(mockUser));
+      localStorage.setItem(AUTH_TOKEN_KEY, `mock-token-${Date.now()}`);
+      localStorage.removeItem(DEMO_BYPASS_KEY);
+      setUser(mockUser);
+      setIsDemo(false);
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
+    if (error) throw error;
+    setUser(mapSupabaseUser(data.user));
+    setIsDemo(false);
+    localStorage.removeItem(DEMO_BYPASS_KEY);
+  }, [mapSupabaseUser]);
+
+  const signup = useCallback(async ({ email, password, nombre, empresa }: SignupCredentials) => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (USE_MOCK_AUTH) {
+      if (!isValidEmail(normalizedEmail)) {
+        throw new Error('Ingresa un correo electronico valido.');
+      }
+
+      if (!password.trim()) {
+        throw new Error('Ingresa tu contrasena.');
+      }
+
+      const profiles = readMockProfiles();
+      profiles[normalizedEmail] = {
+        nombre: nombre.trim(),
+        empresa: empresa.trim(),
+      };
+      localStorage.setItem(MOCK_AUTH_PROFILES_KEY, JSON.stringify(profiles));
+      return;
+    }
+
     const { error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         data: {
           nombre,
           empresa,
-          mail_conectado: mailConectado,
         },
       },
     });
@@ -116,13 +225,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('taxpilot_mock_bypass');
+    if (!USE_MOCK_AUTH) {
+      await supabase.auth.signOut();
+    }
+
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(MOCK_AUTH_USER_KEY);
+    localStorage.removeItem(DEMO_BYPASS_KEY);
+    setUser(null);
     setIsDemo(false);
   }, []);
 
   const activateDemoMode = useCallback(() => {
-    localStorage.setItem('taxpilot_mock_bypass', 'true');
+    localStorage.setItem(DEMO_BYPASS_KEY, 'true');
     setIsDemo(true);
   }, []);
 

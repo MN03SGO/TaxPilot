@@ -1,5 +1,6 @@
+import { CheckCircle2, OctagonAlert } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { DteStatus } from '@/types/dte';
-import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface StatusBadgeProps {
   status: DteStatus;
@@ -7,17 +8,19 @@ interface StatusBadgeProps {
 
 const config: Record<
   DteStatus,
-  { label: string; className: string; icon: typeof CheckCircle2 }
+  { label: string; className: string; icon: LucideIcon }
 > = {
   valid: {
-    label: 'Valid',
-    className: 'bg-[var(--color-success-muted)] text-[var(--color-success)]',
+    label: 'Aprobado',
+    className:
+      'border-emerald-200 bg-[var(--color-success-soft)] text-[var(--color-success)]',
     icon: CheckCircle2,
   },
   invalid: {
-    label: 'Invalid',
-    className: 'bg-[var(--color-error-muted)] text-[var(--color-error)]',
-    icon: XCircle,
+    label: 'Excepción',
+    className:
+      'border-red-200 bg-[var(--color-danger-soft)] text-[var(--color-danger)]',
+    icon: OctagonAlert,
   },
 };
 
@@ -26,9 +29,9 @@ export function StatusBadge({ status }: StatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-[6px] border px-2 py-1 text-xs font-semibold ${className}`}
     >
-      <Icon className="h-3 w-3" />
+      <Icon className="h-3.5 w-3.5" />
       {label}
     </span>
   );

@@ -1,16 +1,17 @@
 import { Outlet } from 'react-router-dom';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { MobileNav, Sidebar } from '@/components/layout/Sidebar';
 import { useAuth } from '@/hooks/useAuth';
 
 export function AppLayout() {
   const { user } = useAuth();
 
   return (
-    <div className="flex min-h-screen bg-[var(--color-surface)]">
+    <div className="min-h-screen bg-[var(--color-surface)] text-[var(--color-foreground)]">
       <Sidebar user={user} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-[280px]">
         <Outlet context={{ user }} />
       </div>
+      <MobileNav />
     </div>
   );
 }
