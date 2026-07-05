@@ -37,8 +37,8 @@ export function Reports() {
     <>
       <Topbar title="Reportes de Cumplimiento" subtitle="Prepara paquetes de exportación listos para auditoría" />
 
-      <main className="flex-1 overflow-y-auto px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-8">
-        <div className="grid gap-5">
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pb-8">
+        <div className="mx-auto grid max-w-[1480px] min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
           <section className="rounded-lg border border-[var(--color-border)] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.035)]">
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center">
               <div>
@@ -72,7 +72,7 @@ export function Reports() {
             </div>
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-3">
+          <section className="grid min-w-0 gap-4 lg:grid-cols-3">
             {reportPacks.map(({ title, description, cadence, state, icon: Icon }) => (
               <article
                 key={title}
@@ -114,13 +114,13 @@ export function Reports() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-primary)]">
               Cola de exportación
             </p>
-            <div className="mt-4 overflow-hidden rounded-[6px] border border-slate-200">
-              <div className="grid grid-cols-[1fr_130px_130px] bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-muted)]">
+            <div className="mt-4 overflow-x-auto rounded-[6px] border border-slate-200 tp-scrollbar">
+              <div className="grid min-w-[620px] grid-cols-[minmax(0,1fr)_130px_130px] bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-muted)]">
                 <span>Paquete</span>
                 <span>Estado</span>
                 <span>Responsable</span>
               </div>
-              <div className="grid grid-cols-[1fr_130px_130px] px-4 py-4 text-sm text-[var(--color-muted)]">
+              <div className="grid min-w-[620px] grid-cols-[minmax(0,1fr)_130px_130px] px-4 py-4 text-sm text-[var(--color-muted)]">
                 <span>No se han generado exportaciones en este espacio.</span>
                 <span>En espera</span>
                 <span>Equipo auditor</span>

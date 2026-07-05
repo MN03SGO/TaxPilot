@@ -81,11 +81,11 @@ export function ProcessingVolumeChart({ data }: ProcessingVolumeChartProps) {
       : undefined;
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white shadow-[0_16px_45px_rgba(15,23,42,0.06)] tp-animate-in tp-delay-2 tp-hover-lift">
-      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+    <div className="min-w-0 overflow-hidden rounded-lg border border-[var(--color-border)] bg-white shadow-[0_16px_45px_rgba(15,23,42,0.06)] tp-animate-in tp-delay-2 tp-hover-lift">
+      <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-[var(--color-foreground)]">
+            <h2 className="text-base font-semibold leading-6 text-[var(--color-foreground)]">
               Resumen de procesamiento DTE
             </h2>
             <span className="flex h-4 w-4 items-center justify-center rounded-full border border-slate-300 text-[10px] font-semibold text-[var(--color-muted)]">
@@ -97,7 +97,7 @@ export function ProcessingVolumeChart({ data }: ProcessingVolumeChartProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {['7D', '30D', '90D'].map((period) => (
             <button
               key={period}
@@ -122,9 +122,9 @@ export function ProcessingVolumeChart({ data }: ProcessingVolumeChartProps) {
         </div>
       </div>
 
-      <div className="h-[330px] px-5">
+      <div className="h-[260px] px-2 sm:h-[300px] sm:px-4 lg:h-[330px] lg:px-5">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 12, right: 8, left: -18, bottom: 8 }}>
+          <AreaChart data={data} margin={{ top: 12, right: 8, left: -10, bottom: 8 }}>
             <defs>
               <linearGradient id="taxpilotValidArea" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#059669" stopOpacity={0.26} />
@@ -183,7 +183,7 @@ export function ProcessingVolumeChart({ data }: ProcessingVolumeChartProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="flex items-center justify-center gap-6 px-5 pb-5 text-xs">
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4 pb-4 text-xs sm:px-5 sm:pb-5">
         <span className="inline-flex items-center gap-2 font-medium text-[var(--color-foreground-soft)]">
           <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-success)]" />
           Válidos

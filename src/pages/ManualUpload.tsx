@@ -519,10 +519,10 @@ export function ManualUpload() {
         subtitle={hasN8nConfig ? "Subida directa de archivos DTE para procesamiento con n8n" : "Subida directa de archivos DTE a Supabase"} 
       />
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pb-8">
+        <div className="mx-auto grid max-w-[1480px] min-w-0 grid-cols-1 gap-5 lg:grid-cols-3">
           {/* File Upload Card */}
-          <section className="lg:col-span-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6 flex flex-col justify-between">
+          <section className="flex min-w-0 flex-col justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4 sm:p-6 lg:col-span-2">
             <div>
               <h2 className="text-base font-semibold text-[var(--color-foreground)] mb-2 flex items-center gap-2">
                 <UploadCloud className="h-5 w-5 text-teal-500" />
@@ -532,15 +532,15 @@ export function ManualUpload() {
                 Selecciona o arrastra el archivo PDF de la representación gráfica del DTE. {hasN8nConfig ? "Nuestro flujo inteligente de n8n lo leerá, extraerá sus datos con IA y lo registrará en la base de datos de manera automática." : "El sistema subirá el archivo directamente a Supabase e indexará el DTE en la base de datos."}
               </p>
 
-              <div className="mb-6 rounded-lg bg-teal-50/50 border border-teal-150 p-3.5 text-xs text-teal-800">
+              <div className="mb-6 rounded-lg border border-teal-200 bg-teal-50/50 p-3.5 text-xs text-teal-800">
                 <p className="font-semibold mb-1">💡 Validación de Duplicados en Tiempo Real</p>
                 <p className="text-teal-700 leading-relaxed">
-                  Para que el sistema detecte y bloquee al instante un DTE repetido en el navegador antes de procesarlo, asegúrate de **nombrar tu archivo PDF con el código de generación o número de control** (por ejemplo: <code className="font-mono bg-teal-100/80 px-1 py-0.5 rounded">C4B3A8B6-3D3D-4A2D-BC3C-2A2B4C5D6E7F.pdf</code>).
+                  Para que el sistema detecte y bloquee al instante un DTE repetido en el navegador antes de procesarlo, asegúrate de **nombrar tu archivo PDF con el código de generación o número de control** (por ejemplo: <code className="break-all rounded bg-teal-100/80 px-1 py-0.5 font-mono">C4B3A8B6-3D3D-4A2D-BC3C-2A2B4C5D6E7F.pdf</code>).
                 </p>
               </div>
 
               {isDemo && (
-                <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-850 flex gap-3 items-start">
+                <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
                   <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-amber-600" />
                   <div>
                     <h4 className="text-sm font-semibold text-amber-900">Modo Demostración Activo</h4>
@@ -578,7 +578,7 @@ export function ManualUpload() {
                       if (!isDemo) document.getElementById('pdfFile')?.click();
                     }}
                     className={[
-                      'relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 text-center transition-all',
+                      'relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-all sm:p-10',
                       isDemo 
                         ? 'border-slate-200 bg-slate-50/30 opacity-55 cursor-not-allowed'
                         : dragActive
@@ -598,11 +598,11 @@ export function ManualUpload() {
                     />
 
                     {pdfFile ? (
-                      <div className="flex flex-col items-center gap-2">
+                      <div className="flex w-full min-w-0 flex-col items-center gap-2">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 shadow-sm animate-bounce">
                           <FileDown className="h-6 w-6" />
                         </div>
-                        <p className="text-sm font-semibold text-slate-800 truncate max-w-xs mt-2">
+                        <p className="mt-2 w-full max-w-full break-all px-2 text-center text-sm font-semibold leading-5 text-slate-800 sm:max-w-md">
                           {pdfFile.name}
                         </p>
                         <p className="text-xs text-slate-500">
@@ -639,11 +639,11 @@ export function ManualUpload() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 pt-4 border-t border-[var(--color-border)]">
+                <div className="flex flex-col gap-3 border-t border-[var(--color-border)] pt-4 sm:flex-row sm:items-center sm:gap-4">
                   <button
                     type="submit"
                     disabled={isSubmitting || !user || isDemo || !pdfFile}
-                    className="rounded-lg bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-500 disabled:opacity-50 cursor-pointer shadow-sm"
+                    className="w-full rounded-lg bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-teal-500 disabled:opacity-50 sm:w-auto"
                   >
                     {isSubmitting ? (hasN8nConfig ? 'Procesando en n8n...' : 'Subiendo a Supabase...') : 'Subir y Procesar'}
                   </button>
@@ -657,7 +657,7 @@ export function ManualUpload() {
                         const pdfInput = document.getElementById('pdfFile') as HTMLInputElement;
                         if (pdfInput) pdfInput.value = '';
                       }}
-                      className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shadow-sm"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto"
                     >
                       Cancelar y Borrar
                     </button>
@@ -666,7 +666,7 @@ export function ManualUpload() {
                   {status.message && (
                     <p
                       className={[
-                        'text-xs font-semibold',
+                        'min-w-0 text-xs font-semibold leading-5 sm:flex-1',
                         status.tone === 'success' ? 'text-green-600' :
                         status.tone === 'error' ? 'text-red-600' :
                         status.tone === 'warning' ? 'text-amber-600' : 'text-neutral-500'
@@ -681,7 +681,7 @@ export function ManualUpload() {
           </section>
 
           {/* Recent List Card */}
-          <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6">
+          <section className="min-w-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4 sm:p-6">
             <h2 className="text-base font-semibold text-[var(--color-foreground)] mb-4 flex items-center gap-2">
               <FileDown className="h-5 w-5 text-[var(--color-muted)]" />
               Últimos DTEs Procesados
@@ -693,14 +693,14 @@ export function ManualUpload() {
             ) : (
               <div className="space-y-4">
                 {recentDtes.map((d) => (
-                  <div key={d.id} className="flex flex-col gap-1 rounded-lg border border-[var(--color-border)] bg-neutral-50/50 p-3">
-                    <div className="flex items-center justify-between">
+                  <div key={d.id} className="flex min-w-0 flex-col gap-1 rounded-lg border border-[var(--color-border)] bg-neutral-50/50 p-3">
+                    <div className="flex min-w-0 items-center justify-between gap-3">
                       <span className="font-mono text-sm font-semibold truncate max-w-[120px]" title={d.codigo_generacion}>
                         {d.codigo_generacion}
                       </span>
                       <span className="text-xs text-[var(--color-muted)]">{d.fecha_emision}</span>
                     </div>
-                    <div className="flex justify-between items-center mt-1">
+                    <div className="mt-1 flex min-w-0 items-center justify-between gap-3">
                       <span className="text-[10px] text-neutral-500 truncate max-w-[110px]">{d.emisor_nombre}</span>
                       <div className="flex gap-2">
                         {d.files?.pdfUrl && (

@@ -99,18 +99,18 @@ function DashboardHeader() {
   const displayName = user?.name ?? 'Auditor';
 
   return (
-    <header className="relative z-40 flex flex-col gap-5 2xl:flex-row 2xl:items-start 2xl:justify-between tp-animate-in">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-normal text-[var(--color-foreground)]">
+    <header className="relative z-40 flex w-full max-w-full min-w-0 flex-col gap-5 2xl:flex-row 2xl:items-start 2xl:justify-between tp-animate-in">
+      <div className="w-full max-w-full min-w-0">
+        <h1 className="text-2xl font-semibold tracking-normal text-[var(--color-foreground)] sm:text-3xl">
           Buenos días, {firstName(displayName)}
         </h1>
-        <p className="mt-2 text-base text-[var(--color-muted)]">
+        <p className="mt-2 max-w-full text-base leading-6 text-[var(--color-muted)]">
           Esto es lo que está pasando hoy con tus auditorías DTE.
         </p>
       </div>
 
-      <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center 2xl:w-auto 2xl:flex-nowrap 2xl:justify-end">
-        <div className="relative w-full sm:w-[300px] 2xl:w-[360px]">
+      <div className="flex w-full max-w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center 2xl:w-auto 2xl:flex-nowrap 2xl:justify-end">
+        <div className="relative w-full max-w-full min-w-0 sm:w-[300px] 2xl:w-[360px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)]" />
           <input
             type="search"
@@ -131,11 +131,11 @@ function DashboardHeader() {
           <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-white bg-[var(--color-primary)] tp-pulse-dot" />
         </button>
 
-        <div className="relative shrink-0">
+        <div className="relative w-full max-w-full min-w-0 sm:w-auto sm:shrink-0">
           <button
             type="button"
             onClick={() => setIsUserMenuOpen((current) => !current)}
-            className="flex h-11 min-w-[220px] max-w-[260px] items-center gap-3 rounded-[8px] border border-[var(--color-border)] bg-white px-3 text-left shadow-sm transition-colors hover:border-[var(--color-primary)]"
+            className="flex h-11 w-full max-w-full min-w-0 items-center gap-3 rounded-[8px] border border-[var(--color-border)] bg-white px-3 text-left shadow-sm transition-colors hover:border-[var(--color-primary)] sm:w-[220px] sm:max-w-[260px]"
             aria-expanded={isUserMenuOpen}
             aria-haspopup="menu"
           >
@@ -199,7 +199,7 @@ function DashboardHeader() {
 
         <button
           type="button"
-          className="inline-flex h-11 w-[188px] shrink-0 items-center justify-center gap-2 overflow-hidden rounded-[8px] border border-[var(--color-border)] bg-white px-3 text-sm font-semibold leading-none text-[var(--color-foreground-soft)] shadow-sm hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+          className="inline-flex h-11 w-full max-w-full shrink-0 items-center justify-center gap-2 overflow-hidden rounded-[8px] border border-[var(--color-border)] bg-white px-3 text-sm font-semibold leading-none text-[var(--color-foreground-soft)] shadow-sm hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] sm:w-[188px]"
           style={{ whiteSpace: 'nowrap' }}
         >
           <CalendarDays className="h-4 w-4 shrink-0 text-[var(--color-primary)]" />
@@ -529,8 +529,8 @@ export function Dashboard() {
 
   return (
     <>
-      <main className="flex-1 overflow-y-auto px-4 py-7 pb-24 sm:px-6 lg:px-8 lg:pb-8">
-        <div className="mx-auto grid max-w-[1480px] gap-6">
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 py-7 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pb-8">
+        <div className="mx-auto grid max-w-[1480px] min-w-0 grid-cols-[minmax(0,1fr)] gap-6">
           <DashboardHeader />
 
           {isLoading && <LoadingState message="Cargando espacio de auditoría..." />}
@@ -541,7 +541,7 @@ export function Dashboard() {
 
           {!isLoading && !error && stats && volumeQuery.data && documentsQuery.data && (
             <>
-              <section className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4 tp-kpi-grid">
+              <section className="grid w-full max-w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4 tp-kpi-grid">
                 <SummaryCard
                   title="DTEs procesados"
                   value={formatNumber(stats.totalProcessed)}
@@ -582,9 +582,9 @@ export function Dashboard() {
                 />
               </section>
 
-              <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(360px,0.9fr)]">
+              <section className="grid w-full max-w-full min-w-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)] 2xl:grid-cols-[minmax(0,1.65fr)_minmax(360px,0.9fr)]">
                 <ProcessingVolumeChart data={volume} />
-                <div className="grid content-start gap-5">
+                <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-5">
                   <StatusDistribution stats={stats} />
                   <RecentAlerts documents={documents} />
                 </div>

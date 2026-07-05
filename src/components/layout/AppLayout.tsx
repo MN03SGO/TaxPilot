@@ -7,7 +7,7 @@ export function AppLayout() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)] text-[var(--color-foreground)]">
+    <div className="min-h-screen overflow-x-hidden bg-[var(--color-surface)] text-[var(--color-foreground)]">
       <Sidebar user={user} />
       <div className="relative flex min-h-screen min-w-0 flex-1 flex-col lg:pl-[280px]">
         <Outlet context={{ user }} />

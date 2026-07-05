@@ -36,8 +36,8 @@ export function Audit() {
         searchPlaceholder="Buscar por DTE, emisor o NIT..."
       />
 
-      <main className="flex-1 overflow-y-auto px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-8">
-        <div className="mx-auto grid max-w-[1480px] gap-5">
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pb-8">
+        <div className="mx-auto grid max-w-[1480px] min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
           <section className="rounded-lg border border-[var(--color-border)] bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.035)] tp-animate-in">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex items-start gap-3">
@@ -58,15 +58,15 @@ export function Audit() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="inline-flex rounded-[6px] border border-[var(--color-border)] bg-[var(--color-surface)] p-1">
+              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="grid w-full grid-cols-1 gap-1 rounded-[6px] border border-[var(--color-border)] bg-[var(--color-surface)] p-1 min-[420px]:grid-cols-3 sm:w-auto">
                   {statusOptions.map((option) => (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => setStatus(option.value)}
                       className={[
-                        'min-w-[112px] rounded-[5px] px-3 py-2 text-left transition-colors',
+                        'min-w-0 rounded-[5px] px-3 py-2 text-left transition-colors sm:min-w-[112px]',
                         status === option.value
                           ? 'bg-white text-[var(--color-primary)] shadow-sm'
                           : 'text-[var(--color-muted)] hover:text-[var(--color-foreground)]',

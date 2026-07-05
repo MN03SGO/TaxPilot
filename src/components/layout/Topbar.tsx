@@ -30,13 +30,13 @@ export function Topbar({
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--color-border)] bg-white/[0.92] backdrop-blur">
-      <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="flex min-h-[72px] items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#08111f] text-white lg:hidden">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+            <div className="flex min-w-0 items-center gap-2 overflow-hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
               <span>TaxPilot</span>
               <span className="h-1 w-1 rounded-full bg-[var(--color-accent)]" />
               <span>Espacio de auditoría</span>
@@ -84,7 +84,7 @@ export function Topbar({
             <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-white bg-[var(--color-danger)] tp-pulse-dot" />
           </button>
 
-          <div className="flex h-10 items-center gap-2 rounded-[6px] border border-[var(--color-border)] bg-white px-2">
+          <div className="flex h-10 min-w-0 items-center gap-2 rounded-[6px] border border-[var(--color-border)] bg-white px-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-[5px] bg-[var(--color-primary-soft)] text-xs font-semibold text-[var(--color-primary)]">
               {user?.initials ?? 'TP'}
             </div>
@@ -96,7 +96,7 @@ export function Topbar({
                 {isDemo ? 'Demo' : user?.role ?? 'Auditoría'}
               </p>
             </div>
-            <ChevronDown className="h-3.5 w-3.5 text-[var(--color-muted)]" />
+            <ChevronDown className="hidden h-3.5 w-3.5 text-[var(--color-muted)] sm:block" />
             <button
               type="button"
               onClick={logout}
@@ -108,6 +108,21 @@ export function Topbar({
           </div>
         </div>
       </div>
+      {onSearchChange && (
+        <div className="flex gap-2 px-4 pb-3 md:hidden">
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)]" />
+            <input
+              type="search"
+              placeholder={searchPlaceholder}
+              value={searchValue}
+              onChange={(event) => onSearchChange(event.target.value)}
+              className="h-10 w-full rounded-[6px] border border-[var(--color-border)] bg-[var(--color-surface)] pl-9 pr-3 text-sm text-[var(--color-foreground)] outline-none transition-colors placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:bg-white"
+            />
+          </div>
+          <VoiceSearchButton onTranscript={onSearchChange} />
+        </div>
+      )}
     </header>
   );
 }

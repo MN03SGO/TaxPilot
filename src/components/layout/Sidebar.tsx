@@ -169,7 +169,7 @@ export function Sidebar({ user }: SidebarProps) {
 
 export function MobileNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--color-border)] bg-white/95 px-2 py-2 shadow-[0_-12px_35px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--color-border)] bg-white/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_35px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
       <div className="grid grid-cols-5 gap-1">
         {navItems.map(({ to, shortLabel, icon: Icon, end }) => (
           <NavLink
@@ -178,7 +178,7 @@ export function MobileNav() {
             end={end}
             className={({ isActive }) =>
               [
-                'flex min-h-12 flex-col items-center justify-center gap-1 rounded-[6px] px-1 text-[10px] font-semibold transition-colors',
+                'flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-[6px] px-1 text-[10px] font-semibold transition-colors',
                 isActive
                   ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
                   : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900',
@@ -186,7 +186,7 @@ export function MobileNav() {
             }
           >
             <Icon className="h-4 w-4" />
-            <span className="truncate">{shortLabel}</span>
+            <span className="max-w-full truncate">{shortLabel}</span>
           </NavLink>
         ))}
       </div>

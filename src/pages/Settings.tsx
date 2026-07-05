@@ -40,8 +40,8 @@ export function Settings() {
     <>
       <Topbar title="Controles" subtitle="Políticas del espacio, integraciones y postura de acceso" />
 
-      <main className="flex-1 overflow-y-auto px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-8">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pb-8">
+        <div className="mx-auto grid max-w-[1480px] min-w-0 grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <section className="rounded-lg border border-[var(--color-border)] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.035)]">
             <div className="border-b border-[var(--color-border)] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-primary)]">
@@ -134,7 +134,7 @@ export function Settings() {
               </div>
 
               <div className="mt-4 grid gap-3">
-                <div className="flex items-center justify-between rounded-[6px] border border-slate-200 bg-slate-50 p-3">
+                <div className="flex flex-col gap-2 rounded-[6px] border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                   <span className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-foreground-soft)]">
                     <KeyRound className="h-4 w-4 text-[var(--color-muted)]" />
                     Supabase
@@ -150,7 +150,7 @@ export function Settings() {
                     {isSupabaseConfigured ? 'Conectado' : 'Faltante'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between rounded-[6px] border border-slate-200 bg-slate-50 p-3">
+                <div className="flex flex-col gap-2 rounded-[6px] border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                   <span className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-foreground-soft)]">
                     <SettingsIcon className="h-4 w-4 text-[var(--color-muted)]" />
                     n8n webhook

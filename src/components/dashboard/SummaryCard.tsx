@@ -122,7 +122,7 @@ export function SummaryCard({
   const styles = accentStyles[accent];
 
   return (
-    <article className="group rounded-lg border border-[var(--color-border)] bg-white p-4 shadow-[0_16px_45px_rgba(15,23,42,0.06)] tp-animate-in tp-hover-lift tp-sheen">
+    <article className="group min-w-0 rounded-lg border border-[var(--color-border)] bg-white p-4 shadow-[0_16px_45px_rgba(15,23,42,0.06)] tp-animate-in tp-hover-lift tp-sheen">
       <div className="grid grid-cols-[48px_1fr] gap-3">
         <div className={`flex h-11 w-11 items-center justify-center rounded-[8px] transition-transform duration-200 group-hover:scale-105 ${styles.icon}`}>
           <Icon className="h-5 w-5" />
@@ -137,13 +137,13 @@ export function SummaryCard({
           <h2 className="truncate text-sm font-medium text-[var(--color-muted)]">
             {title}
           </h2>
-          <p className="mt-2 truncate text-2xl font-semibold tracking-normal text-[var(--color-foreground)]">
+          <p className="mt-2 truncate text-xl font-semibold tracking-normal text-[var(--color-foreground)] sm:text-2xl">
             {value}
           </p>
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_92px] items-end gap-3">
+      <div className="mt-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_92px]">
         <div className="min-w-0">
           {trend && TrendIcon && (
             <span className={`inline-flex items-center gap-1 text-xs font-semibold ${getTrendToneClass(trend.tone)}`}>
@@ -159,7 +159,7 @@ export function SummaryCard({
           )}
         </div>
 
-        <div className="h-14 min-w-0">
+        <div className="hidden h-14 min-w-0 sm:block">
           <MiniSparkline values={sparkline} stroke={styles.stroke} />
         </div>
       </div>

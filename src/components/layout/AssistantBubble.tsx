@@ -227,12 +227,12 @@ export function AssistantBubble() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-4 z-[45] flex max-w-[calc(100vw-2rem)] flex-col items-end sm:right-6 lg:bottom-6">
       {/* Chat Window Panel */}
       {isOpen && (
-        <section className="mb-4 flex h-[480px] w-[360px] flex-col rounded-2xl border border-[var(--color-border)] bg-white/95 backdrop-blur-md shadow-2xl transition-all duration-300 ease-in-out overflow-hidden">
+        <section className="mb-3 flex h-[min(480px,calc(100dvh-10.5rem))] w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-white/95 shadow-2xl backdrop-blur-md transition-all duration-300 ease-in-out sm:mb-4 sm:rounded-2xl lg:h-[480px]">
           {/* Header */}
-          <header className="flex items-center justify-between bg-gradient-to-r from-teal-600 to-teal-700 px-4 py-3 text-white">
+          <header className="flex items-center justify-between gap-3 bg-gradient-to-r from-teal-600 to-teal-700 px-4 py-3 text-white">
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Bot className="h-5 w-5" />
@@ -252,7 +252,7 @@ export function AssistantBubble() {
               <button
                 type="button"
                 onClick={() => setIsMuted(!isMuted)}
-                className="rounded-lg p-1 hover:bg-teal-500/50 transition-colors cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-lg p-1 transition-colors hover:bg-teal-500/50"
                 title={isMuted ? 'Activar voz' : 'Silenciar asistente'}
               >
                 {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -261,7 +261,7 @@ export function AssistantBubble() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg p-1 hover:bg-teal-500/50 transition-colors cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-lg p-1 transition-colors hover:bg-teal-500/50"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -280,7 +280,7 @@ export function AssistantBubble() {
                     : 'bg-white text-slate-800 border border-slate-100 rounded-bl-none'
                 ].join(' ')}
               >
-                <p className="leading-relaxed">{msg.text}</p>
+                <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.text}</p>
                 <span
                   className={[
                     'text-[8px] mt-1 select-none',
@@ -335,7 +335,7 @@ export function AssistantBubble() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Pregúntale al auditor..."
-              className="flex-1 h-9 rounded-lg border border-[var(--color-border)] bg-slate-50 px-3 text-xs text-slate-800 placeholder:text-slate-400 outline-none transition-colors focus:border-teal-500 focus:bg-white"
+              className="h-9 min-w-0 flex-1 rounded-lg border border-[var(--color-border)] bg-slate-50 px-3 text-xs text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-teal-500 focus:bg-white"
             />
 
             <button
@@ -354,7 +354,7 @@ export function AssistantBubble() {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={[
-          'relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-lg transition-transform hover:scale-105 cursor-pointer',
+          'relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-[0_18px_40px_rgba(15,118,110,0.35)] transition-transform hover:scale-105',
           isOpen ? 'rotate-90 bg-slate-800' : ''
         ].join(' ')}
         aria-label="Toggle Assistant Chat"
